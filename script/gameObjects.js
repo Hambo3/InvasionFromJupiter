@@ -120,7 +120,18 @@ class Player extends Movable {
             [assets.rect]
         ];
 
-        //this.hit = assets.rect[1];
+        this.deadly = [C.ASSETS.SHACK];
+        this.hit = [];
+
+        for (var i = 0; i < this.body[0][0][1].length-1; i+=2) {
+            this.hit.push(new Vector2(  this.body[0][0][1][i],
+                                        this.body[0][0][1][i+1]));
+        }
+        this.hit.push(this.hit[0]);
+    }
+    
+    Collider (perp){
+        this.enabled = false;
     }
 
     Update(dt){
@@ -147,6 +158,20 @@ class Player extends Movable {
             }         
         }
         else{
+            if(Input.Fire1())
+            {
+                console.log("Fire1");
+                
+                var sh = gameAsset.gameObjects.Is( C.ASSETS.PLRSHOT);
+                if(sh){
+                    sh.Reset( new Vector2(this.pos.x+16, this.pos.y) );
+                }
+                else{
+                    gameAsset.gameObjects.Add(
+                        new Shot(new Vector2(this.pos.x+16, this.pos.y), C.ASSETS.PLRSHOT, 64 ));
+                }
+            }
+
             var b = MAP.ScreenBounds();
             this.pos.x = Util.Clamp(this.pos.x, b.Min.x, b.Max.x);
             this.pos.y = Util.Clamp(this.pos.y, b.Min.y, b.Max.y);   
@@ -158,9 +183,9 @@ class Player extends Movable {
     }
 }
 
-class House extends Movable{
+class Scrollable extends GameObjectBase{
 
-    constructor(type, spd, pos){
+    constructor(pos, type, spd ){
 
         super(pos, type);
         this.cols = [
@@ -173,9 +198,19 @@ class House extends Movable{
         var hgt = Util.RndI(1,6)*32;
         this.width = hw *2;
         this.height = hgt;
-        this.bodyData = [-hw,0, -hw,-hgt, hw,-hgt, hw,0];
+        this.bodyData = [-hw,0, -hw,-hgt, hw,-hgt, hw,0];      
+          
         this.speed = spd;
         this.size = type == C.ASSETS.BGSHACK ? 0.8 : 1;
+
+        this.deadly = null;
+        this.hit = [];
+
+        for (var i = 0; i < this.bodyData.length-1; i+=2) {
+            this.hit.push(new Vector2(this.bodyData[i], this.bodyData[i+1]));
+        }
+
+        this.acceleration = new Vector2(-1, 0);
     }
 
     Body(){
@@ -188,19 +223,83 @@ class House extends Movable{
     }
 
     Update(dt){
-        var d = {
-            up:0,
-            down:0,
-            left:1,
-            right:0
-        };
-
         var b = MAP.ScreenBounds();
         if((this.pos.x + this.width) < b.Min.x)
         {
             this.enabled = 0;
         }
-        super.Movement(dt,d);
+
+        this.acceleration.Normalize(dt);
+        this.acceleration.Multiply(this.speed);
+        this.velocity.Add(this.acceleration);
+
+        super.Update(dt);
+    }
+}
+
+class Star extends Scrollable{
+
+    constructor(pos, d ){
+        var cols = ["#fff","#999","#444"];
+        var spd = [32,28,24];
+
+        super(pos, C.ASSETS.STAR, spd[d] );
+        this.col = [cols[d]];
+
+        var hw = Util.RndI(2,4)*16;
+        var hgt = Util.RndI(1,6)*32;
+        this.width = hw *2;
+        this.height = hgt;
+        this.bodyData = [-1,-1, 1,-1, 1,1, -1,1];
+
+        this.deadly = null;
+        this.hit = [];
+    }
+}
+
+class Shot extends GameObjectBase{
+
+    constructor(pos, type, spd ){
+        super(pos, type);
+        this.col = ["#f00"];
+        this.speed = spd;
+        this.damping = 0.8;
+
+        this.body = [
+            [[0,[-4,-2, 4,-2, 4,2, -4,2]]]
+        ];
+
+        this.deadly = [C.ASSETS.SHACK];
+        this.hit = [];
+
+        for (var i = 0; i < this.body[0][0][1].length-1; i+=2) {
+            this.hit.push(new Vector2(  this.body[0][0][1][i],
+                                        this.body[0][0][1][i+1]));
+        }
+        this.hit.push(this.hit[0]);
+
+        this.acceleration = new Vector2(1, 0);
+    }
+
+    Collider (perp){
+        this.enabled = false;
+    }
+
+    Reset(p){
+        this.pos = p;
+        this.enabled = 1;
+    }
+
+    Update(dt){
+        var b = MAP.ScreenBounds();
+        if((this.pos.x + this.width) < b.Min.x)
+        {
+            this.enabled = 0;
+        }
+
+        this.acceleration.Normalize(dt);
+        this.acceleration.Multiply(this.speed);
+        this.velocity.Add(this.acceleration);
 
         super.Update(dt);
     }

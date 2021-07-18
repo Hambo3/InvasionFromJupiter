@@ -14,14 +14,15 @@ var PAL =[  "#134","#124","#214","#414","#413","#412","#421","#441","#341","#5a3
 
 var C = {
     ASSETS:{
-        BGSHACK:0,
-        BGHILL:1,
-        SHACK:2,  
-        HILL:3,                     
-        PLAYER:4,
-        PLRSHOT:5,
-        ENEMY:6,
-        EMYSHOT:7
+        STAR:0,
+        BGSHACK:1,
+        BGHILL:2,
+        SHACK:3,  
+        HILL:4,                     
+        PLAYER:5,
+        PLRSHOT:6,
+        ENEMY:7,
+        EMYSHOT:8
     },    
     DIR:{
         NONE:0,

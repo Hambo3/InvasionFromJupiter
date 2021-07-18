@@ -1,27 +1,50 @@
 
 var Util = {
-    Collider: function(prot, perp)
+    Collisions: function(bodies, offset)
     {
-        var x = Util.line_intersects(
-            {
-                x:(bodies[0].body[0][0][1][i] + bodies[0].pos.x)-this.p.x,
-                y:(bodies[0].body[0][0][1][i+1] + bodies[0].pos.y)-this.p.y
-            },
-            {
-                x:(bodies[0].body[0][0][1][i+2] + bodies[0].pos.x)-this.p.x,
-                y:(bodies[0].body[0][0][1][i+3] + bodies[0].pos.y)-this.p.y
-            },
-            {
-                x:(bodies[1].body[0][0][1][j] + bodies[1].pos.x)-this.p.x,
-                y:(bodies[1].body[0][0][1][j+1] + bodies[1].pos.y)-this.p.y
-            },
-            {
-                x:(bodies[1].body[0][0][1][j+2] + bodies[1].pos.x)-this.p.x,
-                y:(bodies[1].body[0][0][1][j+3] + bodies[1].pos.y)-this.p.y
-            });
-
+        for (var i = 0; i < bodies.length; i++) {
+            for (var j = 0; j < bodies.length; j++) {
+                if(Util.Collider(bodies[i], bodies[j], offset))
+                {
+                    bodies[i].Collider(bodies[j]);
+                }           
+            }
+        }        
     },
-    line_intersectsx: function( a,  b,  c,  d)
+    Collider: function(prot, perp, offset)
+    {
+        if(prot != perp && prot.deadly && prot.deadly.indexOf(perp.type) != -1 )
+        {
+            for (var i = 0; i < prot.hit.length-2; i+=2) {
+                for (var j = 0; j < perp.hit.length-2; j+=2) {
+                    var x = Util.line_intersects(
+                    {
+                        x:(prot.hit[i].x + prot.pos.x)-offset.x,
+                        y:(prot.hit[i].y + prot.pos.y)-offset.y
+                    },
+                    {
+                        x:(prot.hit[i+1].x + prot.pos.x)-offset.x,
+                        y:(prot.hit[i+1].y + prot.pos.y)-offset.y
+                    },
+                    {
+                        x:(perp.hit[i].x + perp.pos.x)-offset.x,
+                        y:(perp.hit[i].y + perp.pos.y)-offset.y
+                    },
+                    {
+                        x:(perp.hit[i+1].x + perp.pos.x)-offset.x,
+                        y:(perp.hit[i+1].y + perp.pos.y)-offset.y
+                    });
+
+                    if(x)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    },
+    line_intersects: function( a,  b,  c,  d)
     {
         var s1_x, s1_y, s2_x, s2_y;
         s1_x = b.x - a.x;
@@ -40,93 +63,6 @@ var Util = {
         }
 
         return 0; // No collision  
-    },
-    RectHit: function (prot, perp){ //if 2 rects overlap
-        var p1x = prot.pos.x - (prot.width/2);
-        var p1y = prot.pos.y - (prot.length/2);
-        var p2x = perp.pos.x - (perp.width/2);
-        var p2y = perp.pos.y - (perp.length/2);
-
-        if (p1x < p2x + perp.width && p1x + prot.width > p2x &&
-            p1y < p2y + perp.length && prot.length + p1y > p2y)
-            {
-                return new Vector2(p1x-p2x, p1y-p2y);
-            }
-            else{
-                return 0;
-            }
-    }, 
-    Colliderx: function(bodies, solid){
-        var l=bodies.length;
-
-        for(var i=0; i<l; i++){
-            var body1 = bodies[i];            
-            for(var j=i+1; j<l; j++){
-                var body2 = bodies[j];
-
-                var b1rects = body1.hits;
-
-                for(var r=0; r<b1rects.length; r++){
-                    var b2rects = body2.hits;
-                    for(var t=0; t<b2rects.length; t++){
-
-                        var p = body1.pos.Clone();
-                        p.Add(b1rects[r].pos);
-
-                        p.Subtract(body2.pos.Add(b2rects[t].pos));
-                        var length = p.Length();
-                        var target = (b1rects[r].r*body1.size) + (b2rects[t].r*body2.size);
-        
-                        // if the spheres are closer
-                        // then their radii combined
-                        if(length < target){
-                            var factor = (length-target)/length;
-                            p.Multiply(factor*0.5);                            
-                            
-                            if(body1.Width() == 0 || Util.CanMove(body1.pos, body1.Width(), body1.Length(), -p.x, 0, solid) )
-                            {
-                                 body1.pos.x -= p.x;
-                                 body1.Collider(body2);
-                            }
-                            if(body1.Length() == 0 || Util.CanMove(body1.pos, body1.Width(), body1.Length(), 0, -p.y, solid) )
-                            {
-                                body1.pos.y -= p.y;
-                                body1.Collider(body2);
-                            }
-
-                            if(body2.Width() == 0 || Util.CanMove(body2.pos, body2.Width(), body2.Length(), p.x, 0, solid) )
-                            {
-                                body2.pos.x += p.x;
-                                body2.Collider(body1);
-                            }
-                            if(body2.Length() == 0 || Util.CanMove(body2.pos, body2.Width(), body2.Length(), 0, p.y, solid) )
-                            {
-                                body2.pos.y += p.y;
-                                body2.Collider(body1);
-                            }        
-                        }                        
-                    }
-                }
-            }
-        }
-    },
-    CanMove: function(p, w, l, vx, vy, t){
-        var hw = w/2;
-        var hl = l/2;
-
-        if(MAP.Content( new Vector2(p.x-hw+vx, p.y-hl+vy))  == t) {
-            return false;
-        }
-        if(MAP.Content( new Vector2(p.x+hw+vx, p.y-hl+vy))  == t) {
-            return false;
-        }
-        if(MAP.Content( new Vector2(p.x+hw+vx, p.y+hl+vy))  == t) {
-            return false;
-        }
-        if(MAP.Content( new Vector2(p.x-hw+vx, p.y+hl+vy))  == t) {
-            return false;
-        }
-        return true;
     },
     OneIn: function(c){
         return Util.RndI(0,c)==0;

@@ -5,96 +5,133 @@ class Game{
         this.scrollRate = 0.1;
         this.gameObjects = new ObjectPool(); 
 
-        this.timer = 0;
-        this.bgtimer = 0;
         this.player = new Player(new Vector2(-2*32,24*32));
         this.player.auto = new Vector2(16*32,24*32);
         this.gameObjects.Add(this.player);
 
-        this.p = MAP.ScrollTo(new Vector2(16*32,24*32));
+        this.offset = MAP.ScrollTo(new Vector2(16*32,24*32));
 
-        // var b = MAP.ScreenBounds();
-        // this.gameObjects.Add(
-        //     new House(new Vector2(b.Min.x + ((b.Max.x -b.Min.x)/2), b.Max.y)));
+        this.level = 0;
+        this.transition = 0;
+        this.gameTimer = 10;
+        this.zoomTransition = 0;
+
+        this.ta = 0;
+        this.tb = 0;
     }
 
-    Worker(dt){
+    Events(dt){
         var b = MAP.ScreenBounds();
-        this.timer += dt;
-        this.bgtimer += dt;
-        if(this.timer > 1)
+        this.ta -= dt;
+        this.tb -= dt;
+        this.gameTimer -= dt;
+
+        if(this.gameTimer < 0)
         {
-            this.timer = 0;
-            var d = this.gameObjects.Is( C.ASSETS.SHACK);
-            if(d){
-                d.Reset( new Vector2(b.Max.x + 100, b.Max.y-16) );
+            this.gameTimer = 20;
+            this.level ++;
+
+            if(this.level == 1)
+            {
+                this.transition = 3;
             }
-            else{
-                this.gameObjects.Add(
-                    new House(C.ASSETS.SHACK, 48, new Vector2(b.Max.x + 100, b.Max.y-16)));
+            if(this.level == 2)
+            {
+                this.transition = 0;
+                this.zoomTransition = 0.01;
             }
         }
-        if(this.bgtimer > 0.5)
+
+        if(this.level == 0)
         {
-            this.bgtimer = 0;
-            var d = this.gameObjects.Is( C.ASSETS.BGSHACK);
-            if(d){
-                d.Reset( new Vector2(b.Max.x + 100, b.Max.y-32) );
+            if(this.ta < 0 )
+            {
+                this.ta = Util.Rnd(1)+1;
+                var d = this.gameObjects.Is( C.ASSETS.SHACK);
+                if(d){
+                    d.Reset( new Vector2(b.Max.x + 100, b.Max.y-16) );
+                }
+                else{
+                    this.gameObjects.Add(
+                        new Scrollable(new Vector2(b.Max.x + 100, b.Max.y-16), C.ASSETS.SHACK, 48 ));
+                }
+            }
+            if(this.tb < 0)
+            {
+                this.tb = Util.Rnd(0.5)+0.5;
+                var d = this.gameObjects.Is( C.ASSETS.BGSHACK);
+                if(d){
+                    d.Reset( new Vector2(b.Max.x + 100, b.Max.y-32) );
+                }
+                else{
+                    this.gameObjects.Add(
+                        new Scrollable(new Vector2(b.Max.x + 100, b.Max.y-32), C.ASSETS.BGSHACK, 32 ));
+                }
+            }
+        }
+        if(this.level == 1 || this.level == 2)
+        {
+            if(this.transition > 0)
+            {
+                this.transition -= dt;
             }
             else{
-                this.gameObjects.Add(
-                    new House(C.ASSETS.BGSHACK, 32, new Vector2(b.Max.x + 100, b.Max.y-32)));
+                if(this.ta < 0)
+                {
+                    this.ta = Util.Rnd(0.3);
+                    var d = this.gameObjects.Is( C.ASSETS.STAR);
+                    if(d){
+                        d.Reset( new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)) );
+                    }
+                    else{
+                        this.gameObjects.Add(
+                            new Star(new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), Util.RndI(0,3) ));
+                    }
+                }
+            }
+        }
+
+        if(this.level == 2){
+            if(MAP.scale > 1.5)
+            {
+                this.zoomTransition = 0;
             }
         }
     }
 
     Update(dt)
     {
+        DEBUG.Print("Z",MAP.scale);
+        DEBUG.Print("L",this.level);
+        DEBUG.Print("T", this.gameTimer);
+
         if(Input.IsDown('KeyX') ) {
             MAP.Zoom(0.01);
-            this.p = MAP.ScrollTo(this.player.pos, this.scrollRate);
+            this.offset = MAP.ScrollTo(this.player.pos, this.scrollRate);
         }
         else if(Input.IsDown('KeyZ') ) {
             MAP.Zoom(-0.01);	
-            this.p = MAP.ScrollTo(this.player.pos, this.scrollRate);            
+            this.offset = MAP.ScrollTo(this.player.pos, this.scrollRate);
         }
 
-        this.Worker(dt);
+        
+        if(this.zoomTransition != 0)
+        {
+            MAP.Zoom(this.zoomTransition);
+            this.offset = MAP.ScrollTo(this.player.pos, this.scrollRate);
+        }
 
-        var bodies = this.gameObjects.Get(C.ASSETS.BGSHACK);        
+        //timed events
+        this.Events(dt);
+
+        var bodies = this.gameObjects.Get();
 
         for (var i = 0; i < bodies.length; i++) {
             bodies[i].Update(dt);
         }
 
         //check collisions
-        //Util.Collider(bodies, 0);
-        // for (var i = 0; i < bodies[0].body[0][0][1].length-2; i+=2) {
-        //     for (var j = 0; j < bodies[1].body[0][0][1].length-2; j+=2) {
-        //         var x = Util.line_intersects(
-        //             {
-        //                 x:(bodies[0].body[0][0][1][i] + bodies[0].pos.x)-this.p.x,
-        //                 y:(bodies[0].body[0][0][1][i+1] + bodies[0].pos.y)-this.p.y
-        //             },
-        //             {
-        //                 x:(bodies[0].body[0][0][1][i+2] + bodies[0].pos.x)-this.p.x,
-        //                 y:(bodies[0].body[0][0][1][i+3] + bodies[0].pos.y)-this.p.y
-        //             },
-        //             {
-        //                 x:(bodies[1].body[0][0][1][j] + bodies[1].pos.x)-this.p.x,
-        //                 y:(bodies[1].body[0][0][1][j+1] + bodies[1].pos.y)-this.p.y
-        //             },
-        //             {
-        //                 x:(bodies[1].body[0][0][1][j+2] + bodies[1].pos.x)-this.p.x,
-        //                 y:(bodies[1].body[0][0][1][j+3] + bodies[1].pos.y)-this.p.y
-        //             });
-
-        //         if(x){
-        //             console.log("X");
-        //         }    
-        //     }
-        // }
-        
+        Util.Collisions(bodies, this.offset);
     }
 
     Render()
@@ -110,7 +147,7 @@ class Game{
         GFX.Box(0, (b.Max.y-b.Min.y)-32, (b.Max.x-b.Min.x), 32, "#555");
 
         for (var i = 0; i < asses.length; i++) {
-            asses[i].Render(this.p.x, this.p.y);
+            asses[i].Render(this.offset.x, this.offset.y);
         }
 
         //GFX.Text("0123456789ABCD",100,100,4); 
