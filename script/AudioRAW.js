@@ -22,7 +22,7 @@ zzfxX=new(window.AudioContext||webkitAudioContext) // audio context
   }
   
   function playSong() {
-    zzfx(...[2.15,,608,.05,.1,.08,,.69,6.1,,,,.05,,,,.08,.75,.04,.45]);
+    zzfx(...[,,1223,.06,.24,.06,2,.25,-0.5,11.3,134,-0.01,.06,,4,,.01,.34,.06,.03]);
     }
   
     return{

@@ -20,7 +20,7 @@ class Vector2
     DotProduct(v)         { return this.x*v.x+this.y*v.y; }
 }
 
-class GameObjectBase{
+class GameObject{
 
     constructor(pos, type)
     {
@@ -75,7 +75,7 @@ class GameObjectBase{
     }
 }
 
-class Movable extends GameObjectBase {
+class Movable extends GameObject {
     
     constructor(pos, type)
     {
@@ -168,7 +168,7 @@ class Player extends Movable {
                 }
                 else{
                     gameAsset.gameObjects.Add(
-                        new Shot(new Vector2(this.pos.x+16, this.pos.y), C.ASSETS.PLRSHOT, 64 ));
+                        new Shot(new Vector2(this.pos.x+24, this.pos.y), C.ASSETS.PLRSHOT, 64 ));
                 }
             }
 
@@ -183,7 +183,7 @@ class Player extends Movable {
     }
 }
 
-class Scrollable extends GameObjectBase{
+class Scrollable extends GameObject{
 
     constructor(pos, type, spd ){
 
@@ -257,7 +257,7 @@ class Star extends Scrollable{
     }
 }
 
-class Shot extends GameObjectBase{
+class Shot extends GameObject{
 
     constructor(pos, type, spd ){
         super(pos, type);

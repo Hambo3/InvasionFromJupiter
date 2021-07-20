@@ -18,6 +18,7 @@ class Game{
 
         this.ta = 0;
         this.tb = 0;
+        this.opacity = 0.2;
     }
 
     Events(dt){
@@ -35,10 +36,15 @@ class Game{
             {
                 this.transition = 3;
             }
-            if(this.level == 2)
+            else if(this.level == 2)
             {
-                this.transition = 0;
+                this.transition = 9;
                 this.zoomTransition = 0.01;
+            }
+            else if(this.level == 3)
+            {
+                this.transition = 9;
+                this.zoomTransition = -0.01;
             }
         }
 
@@ -74,6 +80,7 @@ class Game{
             if(this.transition > 0)
             {
                 this.transition -= dt;
+                //this.opacity = 1-0.1;
             }
             else{
                 if(this.ta < 0)
@@ -90,10 +97,18 @@ class Game{
                 }
             }
         }
-
         if(this.level == 2){
-            if(MAP.scale > 1.5)
+            if(this.transition > 0 && MAP.scale > 1.5)
             {
+                this.transition = 0;
+                this.zoomTransition = 0;
+            }
+        }
+        if(this.level == 3){
+            if(this.transition > 0 && MAP.scale < 1)
+            {
+                this.transition = 0;
+                MAP.scale = 1;
                 this.zoomTransition = 0;
             }
         }
@@ -129,30 +144,32 @@ class Game{
         for (var i = 0; i < bodies.length; i++) {
             bodies[i].Update(dt);
         }
-
-        //check collisions
-        Util.Collisions(bodies, this.offset);
     }
 
     Render()
     {
         var b = MAP.ScreenBounds();
-        var asses = this.gameObjects.Get();
+        var bodies = this.gameObjects.Get();
 
-        asses.sort(function(a, b){
+        bodies.sort(function(a, b){
             return a.type - b.type;
         });
 
-        MAP.PreRender("#000");
-        GFX.Box(0, (b.Max.y-b.Min.y)-32, (b.Max.x-b.Min.x), 32, "#555");
+        MAP.PreRender("rgba(76, 33, 95)");
+        if(this.level == 0){
+            GFX.Box(0, (b.Max.y-b.Min.y)-32, (b.Max.x-b.Min.x), 32, "#555");
+        }
 
-        for (var i = 0; i < asses.length; i++) {
-            asses[i].Render(this.offset.x, this.offset.y);
+        for (var i = 0; i < bodies.length; i++) {
+            bodies[i].Render(this.offset.x, this.offset.y);
         }
 
         //GFX.Text("0123456789ABCD",100,100,4); 
 
         MAP.PostRender();
+
+        //check collisions
+        Util.Collisions(bodies, this.offset);
     }
 }
 

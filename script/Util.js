@@ -15,9 +15,9 @@ var Util = {
     {
         if(prot != perp && prot.deadly && prot.deadly.indexOf(perp.type) != -1 )
         {
-            for (var i = 0; i < prot.hit.length-2; i+=2) {
-                for (var j = 0; j < perp.hit.length-2; j+=2) {
-                    var x = Util.line_intersects(
+            for (var i = 0; i < prot.hit.length-1; i++) {
+                for (var j = 0; j < perp.hit.length-1; j++) {
+                    var x = Util.Intersect(
                     {
                         x:(prot.hit[i].x + prot.pos.x)-offset.x,
                         y:(prot.hit[i].y + prot.pos.y)-offset.y
@@ -27,12 +27,12 @@ var Util = {
                         y:(prot.hit[i+1].y + prot.pos.y)-offset.y
                     },
                     {
-                        x:(perp.hit[i].x + perp.pos.x)-offset.x,
-                        y:(perp.hit[i].y + perp.pos.y)-offset.y
+                        x:(perp.hit[j].x + perp.pos.x)-offset.x,
+                        y:(perp.hit[j].y + perp.pos.y)-offset.y
                     },
                     {
-                        x:(perp.hit[i+1].x + perp.pos.x)-offset.x,
-                        y:(perp.hit[i+1].y + perp.pos.y)-offset.y
+                        x:(perp.hit[j+1].x + perp.pos.x)-offset.x,
+                        y:(perp.hit[j+1].y + perp.pos.y)-offset.y
                     });
 
                     if(x)
@@ -44,7 +44,7 @@ var Util = {
         }
         return false;
     },
-    line_intersects: function( a,  b,  c,  d)
+    Intersect: function( a,  b,  c,  d)
     {
         var s1_x, s1_y, s2_x, s2_y;
         s1_x = b.x - a.x;
