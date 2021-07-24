@@ -1,13 +1,41 @@
+class Title{
+
+    constructor()
+    {
+        this.mode = 1;
+    }
+
+    Events(dt){
+    }
+
+    Update(dt)
+    {
+        if(Input.IsSingle('KeyS') ) {
+            this.mode = 2;
+        }
+    }
+
+    Render()
+    {
+        //GFX.Text("0123456789ABCD",100,100,4); 
+    }
+}
+
 class Game{
 
     constructor()
     {
+        this.mode = 3;
         this.scrollRate = 0.1;
         this.gameObjects = new ObjectPool(); 
 
         this.player = new Player(new Vector2(-2*32,24*32));
         this.player.auto = new Vector2(16*32,24*32);
         this.gameObjects.Add(this.player);
+
+        var d = new Alien1(new Vector2(32*32,24*32));
+        this.gameObjects.Add(d);
+        d.target = this.player;    
 
         this.offset = MAP.ScrollTo(new Vector2(16*32,24*32));
 
@@ -18,6 +46,7 @@ class Game{
 
         this.ta = 0;
         this.tb = 0;
+        this.tc = 0;
         this.opacity = 0.2;
     }
 
@@ -25,6 +54,7 @@ class Game{
         var b = MAP.ScreenBounds();
         this.ta -= dt;
         this.tb -= dt;
+        this.tc -= dt;
         this.gameTimer -= dt;
 
         if(this.gameTimer < 0)
@@ -55,11 +85,11 @@ class Game{
                 this.ta = Util.Rnd(1)+1;
                 var d = this.gameObjects.Is( C.ASSETS.SHACK);
                 if(d){
-                    d.Reset( new Vector2(b.Max.x + 100, b.Max.y-16) );
+                    d.Set( new Vector2(b.Max.x + 100, b.Max.y-16) );
                 }
                 else{
                     this.gameObjects.Add(
-                        new Scrollable(new Vector2(b.Max.x + 100, b.Max.y-16), C.ASSETS.SHACK, 48 ));
+                        new Block(new Vector2(b.Max.x + 100, b.Max.y-16), C.ASSETS.SHACK, 48 ));
                 }
             }
             if(this.tb < 0)
@@ -67,11 +97,23 @@ class Game{
                 this.tb = Util.Rnd(0.5)+0.5;
                 var d = this.gameObjects.Is( C.ASSETS.BGSHACK);
                 if(d){
-                    d.Reset( new Vector2(b.Max.x + 100, b.Max.y-32) );
+                    d.Set( new Vector2(b.Max.x + 100, b.Max.y-32) );
                 }
                 else{
                     this.gameObjects.Add(
-                        new Scrollable(new Vector2(b.Max.x + 100, b.Max.y-32), C.ASSETS.BGSHACK, 32 ));
+                        new Block(new Vector2(b.Max.x + 100, b.Max.y-32), C.ASSETS.BGSHACK, 32 ));
+                }
+            }
+            if(this.tc < 0)
+            {
+                this.tc = 1.5;
+                var d = this.gameObjects.Is( C.ASSETS.GRNDCITY);
+                if(d){
+                    d.Set( new Vector2(b.Max.x + 100, b.Max.y) );
+                }
+                else{
+                    this.gameObjects.Add(
+                        new Ground(new Vector2(b.Max.x + 100, b.Max.y), C.ASSETS.GRNDCITY, 32 ));
                 }
             }
         }
@@ -80,7 +122,6 @@ class Game{
             if(this.transition > 0)
             {
                 this.transition -= dt;
-                //this.opacity = 1-0.1;
             }
             else{
                 if(this.ta < 0)
@@ -88,11 +129,11 @@ class Game{
                     this.ta = Util.Rnd(0.3);
                     var d = this.gameObjects.Is( C.ASSETS.STAR);
                     if(d){
-                        d.Reset( new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)) );
+                        d.Set( new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)) );
                     }
                     else{
                         this.gameObjects.Add(
-                            new Star(new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), Util.RndI(0,3) ));
+                            new Star(new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), C.ASSETS.STAR, 32 ));
                     }
                 }
             }
@@ -155,19 +196,14 @@ class Game{
             return a.type - b.type;
         });
 
-        MAP.PreRender("rgba(76, 33, 95)");
-        if(this.level == 0){
-            GFX.Box(0, (b.Max.y-b.Min.y)-32, (b.Max.x-b.Min.x), 32, "#555");
-        }
+        MAP.PreRender("#000");
 
         for (var i = 0; i < bodies.length; i++) {
             bodies[i].Render(this.offset.x, this.offset.y);
         }
 
-        //GFX.Text("0123456789ABCD",100,100,4); 
-
         MAP.PostRender();
-
+        SFX.Text("0123456789ABCD",100,100,4,1,"#ff0"); 
         //check collisions
         Util.Collisions(bodies, this.offset);
     }
@@ -334,7 +370,7 @@ class Render{
 
     Text(str, xs, ys, size, sc, col) {
 
-        ctx.fillStyle = col || '#000000';
+        this.ctx.fillStyle = col || '#000000';
         var cr = xs;
 
         for (var i = 0; i < str.length; i++) {

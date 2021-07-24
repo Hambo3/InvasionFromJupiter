@@ -70,23 +70,6 @@ var Util = {
     OneOf: function(arr){
         return arr[Util.RndI(0,arr.length)];
     },
-    IntNormalise: function(n,r){
-        return (r+1)-n;
-    },
-    //int min to max-1
-    RndI: function (min, max){
-        return parseInt(Math.random() * (max-min)) + min;
-    },
-    Rnd: function (max){
-        return Math.random() * max;
-    },  
-    Min: function(a, b)
-    {
-        return (a<b)? a : b;
-    },
-    Max: function(a, b){
-        return (a>b)? a : b;
-    },
     Clamp: function(v, min, max){        
         return Util.Min(Util.Max(v, min), max);
     },
@@ -94,9 +77,35 @@ var Util = {
     {
         return (end-start) * amt+start;
     },
+    HitBox: function(body){
+        var hit = [];
+        for (var i = 0; i < body.length-1; i+=2) {
+            hit.push(new Vector2(  body[i], body[i+1]));
+        }
+        hit.push(hit[0]);
+        return hit;
+    }, 
+    //int min to max-1
+    RndI: function (min, max){
+        return parseInt(Math.random() * (max-min)) + min;
+    },
+    Rnd: function (max){
+        return Math.random() * max;
+    }, 
+    IntNormalise: function(n,r){
+        return (r+1)-n;
+    }, 
+    Min: function(a, b)
+    {
+        return (a<b)? a : b;
+    },
+    Max: function(a, b){
+        return (a>b)? a : b;
+    },
     AbsDist: function(p1, p2){
         return Math.abs( p1 - p2);
     }
+
 }
 
 // a v simple object pooler
