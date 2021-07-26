@@ -17,7 +17,8 @@ class Title{
 
     Render()
     {
-        //GFX.Text("0123456789ABCD",100,100,4); 
+        SFX.Box(0,0,SFX.bounds.w, SFX.bounds.h,"#888");
+        SFX.Text("0123456789ABCD",100,100,4, 1, "#FFF");       
     }
 }
 
@@ -48,13 +49,45 @@ class Game{
         this.tb = 0;
         this.tc = 0;
         this.opacity = 0.2;
+
+        this.sky = new Vector2(0,0);
+        this.Init(0);
+    }
+
+    Init(l)
+    {
+        if(l==0){
+            var b = MAP.ScreenBounds();            
+            var s = b.Min.x;
+
+            do {
+                this.gameObjects.Add(
+                    new Ground(new Vector2(s, b.Max.y), C.ASSETS.GRNDCITY, 32 ));
+                s+=256;                  
+            } while (s<b.Max.x);
+
+        }
+    }
+
+    ObjectGen(type, obj, t, min, max, pos, a){
+        if(t < 0 )
+        {
+            t = Util.Rnd(max)+min;
+            var d = this.gameObjects.Is(type);
+            if(d){
+                d.Set( pos );
+            }
+            else{
+                this.gameObjects.Add(
+                    new obj(pos, type, a ));
+            }
+        }
+        return t;
     }
 
     Events(dt){
         var b = MAP.ScreenBounds();
-        this.ta -= dt;
-        this.tb -= dt;
-        this.tc -= dt;
+
         this.gameTimer -= dt;
 
         if(this.gameTimer < 0)
@@ -80,42 +113,10 @@ class Game{
 
         if(this.level == 0)
         {
-            if(this.ta < 0 )
-            {
-                this.ta = Util.Rnd(1)+1;
-                var d = this.gameObjects.Is( C.ASSETS.SHACK);
-                if(d){
-                    d.Set( new Vector2(b.Max.x + 100, b.Max.y-16) );
-                }
-                else{
-                    this.gameObjects.Add(
-                        new Block(new Vector2(b.Max.x + 100, b.Max.y-16), C.ASSETS.SHACK, 48 ));
-                }
-            }
-            if(this.tb < 0)
-            {
-                this.tb = Util.Rnd(0.5)+0.5;
-                var d = this.gameObjects.Is( C.ASSETS.BGSHACK);
-                if(d){
-                    d.Set( new Vector2(b.Max.x + 100, b.Max.y-32) );
-                }
-                else{
-                    this.gameObjects.Add(
-                        new Block(new Vector2(b.Max.x + 100, b.Max.y-32), C.ASSETS.BGSHACK, 32 ));
-                }
-            }
-            if(this.tc < 0)
-            {
-                this.tc = 1.5;
-                var d = this.gameObjects.Is( C.ASSETS.GRNDCITY);
-                if(d){
-                    d.Set( new Vector2(b.Max.x + 100, b.Max.y) );
-                }
-                else{
-                    this.gameObjects.Add(
-                        new Ground(new Vector2(b.Max.x + 100, b.Max.y), C.ASSETS.GRNDCITY, 32 ));
-                }
-            }
+            this.sky.y += 1;
+            this.ta = this.ObjectGen(C.ASSETS.SHACK, Block, this.ta-dt, 1, 1, new Vector2(b.Max.x + 100, b.Max.y-16), 48);
+            this.tb = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.tb-dt, 0.5, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), 32);
+            this.tc = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.tc-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), 32);
         }
         if(this.level == 1 || this.level == 2)
         {
@@ -124,18 +125,7 @@ class Game{
                 this.transition -= dt;
             }
             else{
-                if(this.ta < 0)
-                {
-                    this.ta = Util.Rnd(0.3);
-                    var d = this.gameObjects.Is( C.ASSETS.STAR);
-                    if(d){
-                        d.Set( new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)) );
-                    }
-                    else{
-                        this.gameObjects.Add(
-                            new Star(new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), C.ASSETS.STAR, 32 ));
-                    }
-                }
+                this.ta = this.ObjectGen(C.ASSETS.STAR, Star, this.ta-dt, 0, 0.3, new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), Util.RndI(0,3));
             }
         }
         if(this.level == 2){
@@ -157,6 +147,7 @@ class Game{
 
     Update(dt)
     {
+        //#region DEBUG
         DEBUG.Print("Z",MAP.scale);
         DEBUG.Print("L",this.level);
         DEBUG.Print("T", this.gameTimer);
@@ -169,7 +160,7 @@ class Game{
             MAP.Zoom(-0.01);	
             this.offset = MAP.ScrollTo(this.player.pos, this.scrollRate);
         }
-
+        //#endregion DEBUG
         
         if(this.zoomTransition != 0)
         {
@@ -197,13 +188,14 @@ class Game{
         });
 
         MAP.PreRender("#000");
+        GFX.Image(GFX.bletchley, this.sky, {x:800,y:600}, {x:0,y:0}, {x:64,y:64});
 
         for (var i = 0; i < bodies.length; i++) {
             bodies[i].Render(this.offset.x, this.offset.y);
         }
 
         MAP.PostRender();
-        SFX.Text("0123456789ABCD",100,100,4,1,"#ff0"); 
+        //SFX.Text("0123456789ABCD",100,100,4,1,"#ff0"); 
         //check collisions
         Util.Collisions(bodies, this.offset);
     }
@@ -316,6 +308,17 @@ class Render{
     {
         this.ctx = context;
         this.bounds = {w:width,h:height};
+
+        this.bletchley = document.createElement('canvas');
+        this.bletchley.width = 64;
+		this.bletchley.height = 64;
+        var ctx = this.bletchley.getContext('2d');
+
+        this.grd = ctx.createLinearGradient(0, 0, 0, 64);
+        this.grd.addColorStop(0, "black");
+        this.grd.addColorStop(1, "white");
+        ctx.fillStyle = this.grd;
+        ctx.fillRect(0, 0, 64, 64);
     }
 
     PT(p){

@@ -20,6 +20,25 @@ class Vector2
     DotProduct(v)         { return this.x*v.x+this.y*v.y; }
 }
 
+class Anim{
+    constructor(r, m ){
+        this.rate = r;
+        this.max = m;
+        this.count = 0;
+    }
+
+    Next(frame){
+        if(++this.count == this.rate){
+            this.count = 0;
+            if(++frame==this.max)
+            {
+                return 0;
+            }
+        }
+        return frame;
+    }
+}
+
 class GameObject{
 
     constructor(pos, type)
@@ -110,11 +129,13 @@ class Player extends Movable {
     constructor(pos)
     {
         super(pos, C.ASSETS.PLAYER);
-        this.col = ["#441","#a93"];
+        this.col = ["#AA9","#CCC"];
         this.speed = 48;
         this.damping = 0.8;
         this.auto = null;
-        this.body = [assets.rect];
+        this.body = [
+            [0,[-16,0,16,0,-6,4],1,[-10,-4,16,-1,16,0,-16,0]]
+        ];
         this.width = 32;
         this.height = 16;
         this.deadly = [C.ASSETS.SHACK];
@@ -153,14 +174,18 @@ class Player extends Movable {
         else{
             if(Input.Fire1())
             {
-                var sh = GAME.gameObjects.Is( C.ASSETS.PLRSHOT);
-                if(sh){
-                    sh.Set( new Vector2(this.pos.x+16, this.pos.y) );
+                var bodies = GAME.gameObjects.Get([C.ASSETS.PLRSHOT]);
+                if(bodies.length < 5){
+                    var sh = GAME.gameObjects.Is( C.ASSETS.PLRSHOT);
+                    if(sh){
+                        sh.Set( new Vector2(this.pos.x+16, this.pos.y) );
+                    }
+                    else{
+                        GAME.gameObjects.Add(
+                            new Laser(new Vector2(this.pos.x+24, this.pos.y), C.ASSETS.PLRSHOT, 64 ));
+                    }                    
                 }
-                else{
-                    GAME.gameObjects.Add(
-                        new Laser(new Vector2(this.pos.x+24, this.pos.y), C.ASSETS.PLRSHOT, 64 ));
-                }
+
             }
 
             var b = MAP.ScreenBounds();
@@ -179,12 +204,17 @@ class Alien1 extends Movable {
     constructor(pos)
     {
         super(pos, C.ASSETS.ENEMY);
-        this.col = ["#441","#a93"];
+        this.col = ["#888","#777","#AAA"];
         this.speed = 4;
         this.damping = 0.99;
         this.width = 32;
         this.height = 32;
-        this.body = [assets.square];
+        this.body = [
+            [0,[-10,3,10,3,20,11,-20,11],1,[-10,-4,10,-4,10,3,-10,3],0,[-10,-4,-8,-6,-5,-8,-2,-9,2,-9,5,-8,8,-6,10,-4],2,[-10,-2,-7,-2,-7,1,-10,1],2,[-4,-2,-1,-2,-1,1,-4,1],2,[2,-2,5,-2,5,1,2,1],2,[8,-2,10,-2,10,1,8,1]],
+            [0,[-10,3,10,3,20,11,-20,11],1,[-10,-4,10,-4,10,3,-10,3],0,[-10,-4,-8,-6,-5,-8,-2,-9,2,-9,5,-8,8,-6,10,-4],2,[-8,-2,-5,-2,-5,1,-8,1],2,[-2,-2,1,-2,1,1,-2,1],2,[4,-2,7,-2,7,1,4,1]],
+            [0,[-10,3,10,3,20,11,-20,11],1,[-10,-4,10,-4,10,3,-10,3],0,[-10,-4,-8,-6,-5,-8,-2,-9,2,-9,5,-8,8,-6,10,-4],2,[-6,-2,-3,-2,-3,1,-6,1],2,[0,-2,3,-2,3,1,0,1],2,[6,-2,9,-2,9,1,6,1],2,[-10,-2,-9,-2,-9,1,-10,1]]
+        ];
+        this.anim = new Anim(8,3);
         this.target;
 
         this.deadly = [C.ASSETS.SHACK];
@@ -227,6 +257,8 @@ class Alien1 extends Movable {
         }  
 
         super.Movement(dt, d);
+
+        this.motion=this.anim.Next(this.motion);
 
         super.Update(dt);
     }
@@ -312,17 +344,19 @@ class Ground extends Scrollable{
 
 class Star extends Scrollable{
 
-    constructor(pos, type, spd ){
-        super(pos, type, spd ); 
+    constructor(pos, type, d ){
+        var spd = [48,32,24];
+        super(pos, type, spd[d] ); 
         this.height = 2; 
         this.width = 2;
         this.col = ["#fff","#999","#444"];
+        this.dist = d;
         this.Set(pos);
     }
 
     Set(p){
         this.body = [
-                [0, [-1,-1, 1,-1, 1,1, -1,1]]
+                [this.dist, [-1,-1, 1,-1, 1,1, -1,1]]
         ];
 
         this.hit = Util.HitBox(this.body[0][1]);

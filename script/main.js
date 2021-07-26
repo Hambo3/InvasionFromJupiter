@@ -66,7 +66,8 @@ function Start(canvasBody)
 		}
 		//offscreen renderer
 		GFX = new Render(MAP.osCtx);
-		SFX = new Render(MAP.screenCtx);	
+		SFX = new Render(MAP.screenCtx, map.size.screen.width* map.size.tile.width, 
+			map.size.screen.height* map.size.tile.height);	
 		AUDIO = new TinySound();
 		// AUDIO = new Music2(
 		// 	[
