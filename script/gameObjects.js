@@ -218,7 +218,7 @@ class Alien1 extends Movable {
         this.target;
 
         this.deadly = [C.ASSETS.SHACK];
-        this.hit = Util.HitBox(this.body[0][1]);
+        this.hit = Util.HitBox([-17,10,-10,4,-10,-4,-3,-8,3,-8,10,-4,10,4,17,10]);
         this.enabled = 1;
     }
     
@@ -296,14 +296,47 @@ class Block extends Scrollable{
         super(pos, type, spd ); 
 
         this.cols = [
-                ["#124","#34a","#67e","#ccf"],
-                ["#333","#333","#333","#333"]
+                ["#555","#666","#777","#888","#000","#fff"],
+                ["#111"]
             ];
-        this.col = type == C.ASSETS.BGSHACK ? this.cols[1] : this.cols[0];
+        this.col = type == C.ASSETS.SHACK ? this.cols[0] : this.cols[1];
         this.Set(pos);
     }
 
     Set(p){
+        var r = Util.RndI(1,6);
+        var c = Util.RndI(2,4);
+        var hw = (c * 32)/2;
+        var ht = r * 32;
+        this.width = c * 32;
+        this.height = r * 32;
+        this.size = 0.8;
+        this.body = [
+                [0, [-hw,0, -hw,-ht, hw,-ht, hw,0]]
+        ];
+
+        if(this.type==C.ASSETS.SHACK){
+            this.body[0][0] = Util.RndI(0,4);
+            this.size = 1;
+            var y = -16;
+            var w = 5;
+            for (var i = 0; i < r; i++) {
+                var x = -hw+16;
+                for (var j = 0; j < c; j++) {
+                    this.body[0].push(Util.RndI(4,6),[x-w,y-w, x+w,y-w, x+w,y+w, x-w,y+w]);
+                    x+=32;
+                }
+                y-=32;
+            }            
+        }
+
+        this.hit = Util.HitBox(this.body[0][1]);
+
+        this.pos = p;
+        this.enabled = 1;
+    }
+
+    xSet(p){
         var hw = Util.RndI(2,4)*16;
         var hgt = Util.RndI(1,6)*32;
         this.width = hw *2;
@@ -326,7 +359,7 @@ class Ground extends Scrollable{
 
         this.width = 256;
         this.height = 32;        
-        this.col = ["#444","#555","#666"];
+        this.col = ["#444"];
         this.Set(pos);
     }
 

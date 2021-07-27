@@ -27,22 +27,24 @@ class Game{
     constructor()
     {
         this.mode = 3;
-        this.scrollRate = 0.1;
+        this.scrollRate = 0.03;
         this.gameObjects = new ObjectPool(); 
 
         this.player = new Player(new Vector2(-2*32,24*32));
         this.player.auto = new Vector2(16*32,24*32);
         this.gameObjects.Add(this.player);
 
-        var d = new Alien1(new Vector2(32*32,24*32));
-        this.gameObjects.Add(d);
-        d.target = this.player;    
+        // var d = new Alien1(new Vector2(32*32,24*32));
+        // this.gameObjects.Add(d);
+        // d.target = this.player;    
 
         this.offset = MAP.ScrollTo(new Vector2(16*32,24*32));
 
-        this.level = 0;
-        this.transition = 0;
-        this.gameTimer = 10;
+         this.level = 0;           
+        this.levelDistance = TRANS[this.level].d;
+        this.transition = TRANS[this.level].t;
+ 
+
         this.zoomTransition = 0;
 
         this.ta = 0;
@@ -88,57 +90,43 @@ class Game{
     Events(dt){
         var b = MAP.ScreenBounds();
 
-        this.gameTimer -= dt;
-
-        if(this.gameTimer < 0)
-        {
-            this.gameTimer = 20;
-            this.level ++;
-
-            if(this.level == 1)
+        if(this.transition > 0){
+            this.transition--;
+        }
+        else{
+            this.levelDistance--;
+            if(this.levelDistance == 0)
             {
-                this.transition = 3;
-            }
-            else if(this.level == 2)
-            {
-                this.transition = 9;
-                this.zoomTransition = 0.01;
-            }
-            else if(this.level == 3)
-            {
-                this.transition = 9;
-                this.zoomTransition = -0.01;
-            }
+                this.level++;
+                this.levelDistance = TRANS[this.level].d;
+                this.transition= TRANS[this.level].t;
+                this.zoomTransition = TRANS[this.level].z;
+            }            
         }
 
         if(this.level == 0)
         {
-            this.sky.y += 1;
-            this.ta = this.ObjectGen(C.ASSETS.SHACK, Block, this.ta-dt, 1, 1, new Vector2(b.Max.x + 100, b.Max.y-16), 48);
-            this.tb = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.tb-dt, 0.5, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), 32);
+            if(this.transition==0){
+                this.sky.y++;
+                this.ta = this.ObjectGen(C.ASSETS.SHACK, Block, this.ta-dt, 1, 1, new Vector2(b.Max.x + 100, b.Max.y-16), 48);
+                this.tb = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.tb-dt, 0.5, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), 32);
+            }
             this.tc = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.tc-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), 32);
         }
         if(this.level == 1 || this.level == 2)
         {
-            if(this.transition > 0)
-            {
-                this.transition -= dt;
-            }
-            else{
-                this.ta = this.ObjectGen(C.ASSETS.STAR, Star, this.ta-dt, 0, 0.3, new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), Util.RndI(0,3));
-            }
+            this.ta = this.ObjectGen(C.ASSETS.STAR, Star, this.ta-dt, 0, 0.3, new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), Util.RndI(0,3));
         }
         if(this.level == 2){
-            if(this.transition > 0 && MAP.scale > 1.5)
+            if(MAP.scale > 1.5)
             {
-                this.transition = 0;
                 this.zoomTransition = 0;
+                MAP.scale = 1.5;
             }
         }
         if(this.level == 3){
-            if(this.transition > 0 && MAP.scale < 1)
+            if(MAP.scale < 1)
             {
-                this.transition = 0;
                 MAP.scale = 1;
                 this.zoomTransition = 0;
             }
@@ -150,7 +138,8 @@ class Game{
         //#region DEBUG
         DEBUG.Print("Z",MAP.scale);
         DEBUG.Print("L",this.level);
-        DEBUG.Print("T", this.gameTimer);
+        DEBUG.Print("T", this.transition);
+        DEBUG.Print("D", this.levelDistance);
 
         if(Input.IsDown('KeyX') ) {
             MAP.Zoom(0.01);
@@ -188,14 +177,20 @@ class Game{
         });
 
         MAP.PreRender("#000");
-        GFX.Image(GFX.bletchley, this.sky, {x:800,y:600}, {x:0,y:0}, {x:64,y:64});
+        if(this.level == 0){
+            GFX.Image(GFX.sky, this.sky, {x:800,y:600}, {x:0,y:0}, {x:64,y:64});
+        }
 
         for (var i = 0; i < bodies.length; i++) {
             bodies[i].Render(this.offset.x, this.offset.y);
         }
 
         MAP.PostRender();
-        //SFX.Text("0123456789ABCD",100,100,4,1,"#ff0"); 
+        if(this.transition){
+            SFX.Text(TRANS[this.level].title,350,300,4,1,"#ff0"); 
+            SFX.Text(TRANS[this.level].info,350,340,2,1,"#ff0"); 
+        }
+        //
         //check collisions
         Util.Collisions(bodies, this.offset);
     }
@@ -309,14 +304,14 @@ class Render{
         this.ctx = context;
         this.bounds = {w:width,h:height};
 
-        this.bletchley = document.createElement('canvas');
-        this.bletchley.width = 64;
-		this.bletchley.height = 64;
-        var ctx = this.bletchley.getContext('2d');
+        this.sky = document.createElement('canvas');
+        this.sky.width = 64;
+		this.sky.height = 64;
+        var ctx = this.sky.getContext('2d');
 
         this.grd = ctx.createLinearGradient(0, 0, 0, 64);
-        this.grd.addColorStop(0, "black");
-        this.grd.addColorStop(1, "white");
+        this.grd.addColorStop(0, "#000");
+        this.grd.addColorStop(1, "#390c31");
         ctx.fillStyle = this.grd;
         ctx.fillRect(0, 0, 64, 64);
     }
