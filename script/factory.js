@@ -10,6 +10,12 @@ var C = {
         PLRSHOT:7,
         ENEMY:8,
         EMYSHOT:9
+     },
+     FORMATION:{
+         VERTICAL:0,
+         HORIZONTAL:1,
+         DDOWN:2,
+         DUP:3
      }
 }
 
@@ -18,6 +24,11 @@ var TRANS = [
     {t:500, d:500, z:0, title:"SPACE",info:"SAVED"},
     {t:500, d:500, z:0.001, title:"BOSS",info:"KILL THE BOSS"},
     {t:500, d:1000, z:-0.001, title:"JUPITER",info:"PROCEDE TO JUPITER"}
+];
+
+var WAVE =[
+    {d:300,n:3, t:1, f:C.FORMATION.VERTICAL},
+    {d:500,n:5, t:1, f:C.FORMATION.HORIZONTAL}
 ];
 
 var FONT = {    

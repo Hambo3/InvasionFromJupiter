@@ -39,9 +39,6 @@ var map={
 	data:[]
 };
 
-// var MM;
-
-// var ctx;//
 /*****************************/
 function Start(canvasBody)
 {
@@ -65,7 +62,7 @@ function Start(canvasBody)
 			MAP.maxScale = map.size.world.height/map.size.screen.height;
 		}
 		//offscreen renderer
-		GFX = new Render(MAP.osCtx);
+		GFX = new Render(MAP.offScreen.ctx);
 		SFX = new Render(MAP.screenCtx, map.size.screen.width* map.size.tile.width, 
 			map.size.screen.height* map.size.tile.height);	
 		AUDIO = new TinySound();

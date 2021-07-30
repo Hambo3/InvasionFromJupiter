@@ -34,10 +34,6 @@ class Game{
         this.player.auto = new Vector2(16*32,24*32);
         this.gameObjects.Add(this.player);
 
-        // var d = new Alien1(new Vector2(32*32,24*32));
-        // this.gameObjects.Add(d);
-        // d.target = this.player;    
-
         this.offset = MAP.ScrollTo(new Vector2(16*32,24*32));
 
          this.level = 0;           
@@ -50,6 +46,8 @@ class Game{
         this.ta = 0;
         this.tb = 0;
         this.tc = 0;
+
+        this.ufoWave = 0;
         this.opacity = 0.2;
 
         this.sky = new Vector2(0,0);
@@ -109,7 +107,25 @@ class Game{
             if(this.transition==0){
                 this.sky.y++;
                 this.ta = this.ObjectGen(C.ASSETS.SHACK, Block, this.ta-dt, 1, 1, new Vector2(b.Max.x + 100, b.Max.y-16), 48);
-                this.tb = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.tb-dt, 0.5, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), 32);
+                this.tb = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.tb-dt, 0.4, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), 32);
+
+                if(this.ufoWave < WAVE.length ){
+                    if((TRANS[this.level].d - this.levelDistance) > WAVE[this.ufoWave].d)
+                    {
+                        var w = WAVE[this.ufoWave];
+                        for (var i = 0; i < w.n; i++) {
+                            var d;
+                            if(w.t == 1)
+                            {
+                                d = new Alien1(new Vector2((30+(i*2))*32,(20+(i*2))*32));
+                            }
+                            this.gameObjects.Add(d);
+                            d.target = this.player;  
+                        }    
+                        
+                        this.ufoWave++;
+                    }
+                }
             }
             this.tc = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.tc-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), 32);
         }
@@ -178,7 +194,7 @@ class Game{
 
         MAP.PreRender("#000");
         if(this.level == 0){
-            GFX.Image(GFX.sky, this.sky, {x:800,y:600}, {x:0,y:0}, {x:64,y:64});
+            GFX.Image(GFX.sky.canvas, this.sky, {x:800,y:600}, {x:0,y:0}, {x:64,y:64});
         }
 
         for (var i = 0; i < bodies.length; i++) {
@@ -216,17 +232,8 @@ class MapManger{
         this.minScale = 0.5;
 
         this.screenCtx = ctx;
-        this.tileCanvas = document.createElement('canvas');
-        this.tileCanvas.width = this.mapSize.x;
-		this.tileCanvas.height = this.mapSize.y;
-        this.tileCtx = this.tileCanvas.getContext('2d');
 
-        this.osCanvas = document.createElement('canvas');
-        this.osCanvas.width = this.mapSize.x;
-		this.osCanvas.height = this.mapSize.y;
-        this.osCtx = this.osCanvas.getContext('2d');
-
-        this.rend = new Render(this.tileCtx);
+        this.offScreen = Util.Context(this.mapSize.x, this.mapSize.y);
     }
 
     Zoom(rate){
@@ -279,8 +286,8 @@ class MapManger{
         var sc = this.screenSize.Clone();
         sc.Multiply(this.scale);
 
-        this.osCtx.fillStyle = col;
-        this.osCtx.fillRect(0, 0, sc.x, sc.y);
+        this.offScreen.ctx.fillStyle = col;
+        this.offScreen.ctx.fillRect(0, 0, sc.x, sc.y);
     }
 
     PostRender(){
@@ -289,7 +296,7 @@ class MapManger{
 
         this.screenCtx.drawImage
         (
-            this.osCanvas, 
+            this.offScreen.canvas, 
             0, 0, sc.x, sc.y,
             0, 0, this.screenSize.x, this.screenSize.y
         );
@@ -304,16 +311,18 @@ class Render{
         this.ctx = context;
         this.bounds = {w:width,h:height};
 
-        this.sky = document.createElement('canvas');
-        this.sky.width = 64;
-		this.sky.height = 64;
-        var ctx = this.sky.getContext('2d');
+        this.sky = Util.Context(64,64);
+        //this.sky 
+        // this.sky = document.createElement('canvas');
+        // this.sky.width = 64;
+		// this.sky.height = 64;
+        // var ctx = this.sky.getContext('2d');
 
-        this.grd = ctx.createLinearGradient(0, 0, 0, 64);
+        this.grd = this.sky.ctx.createLinearGradient(0, 0, 0, 64);
         this.grd.addColorStop(0, "#000");
         this.grd.addColorStop(1, "#390c31");
-        ctx.fillStyle = this.grd;
-        ctx.fillRect(0, 0, 64, 64);
+        this.sky.ctx.fillStyle = this.grd;
+        this.sky.ctx.fillRect(0, 0, 64, 64);
     }
 
     PT(p){

@@ -104,6 +104,12 @@ var Util = {
     },
     AbsDist: function(p1, p2){
         return Math.abs( p1 - p2);
+    },
+    Context: function(w, h){
+        var canvas = document.createElement('canvas');
+        canvas.width = w;
+		canvas.height = h;
+        return {ctx:canvas.getContext('2d'), canvas:canvas};
     }
 
 }
