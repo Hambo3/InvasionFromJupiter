@@ -19,20 +19,20 @@ var Util = {
                 for (var j = 0; j < perp.hit.length-1; j++) {
                     var x = Util.Intersect(
                     {
-                        x:(prot.hit[i].x + prot.pos.x)-offset.x,
-                        y:(prot.hit[i].y + prot.pos.y)-offset.y
+                        x:((prot.hit[i].x * prot.size) + prot.pos.x)-offset.x,
+                        y:((prot.hit[i].y * prot.size) + prot.pos.y)-offset.y
                     },
                     {
-                        x:(prot.hit[i+1].x + prot.pos.x)-offset.x,
-                        y:(prot.hit[i+1].y + prot.pos.y)-offset.y
+                        x:((prot.hit[i+1].x * prot.size) + prot.pos.x)-offset.x,
+                        y:((prot.hit[i+1].y * prot.size) + prot.pos.y)-offset.y
                     },
                     {
-                        x:(perp.hit[j].x + perp.pos.x)-offset.x,
-                        y:(perp.hit[j].y + perp.pos.y)-offset.y
+                        x:((perp.hit[j].x * perp.size) + perp.pos.x)-offset.x,
+                        y:((perp.hit[j].y * perp.size) + perp.pos.y)-offset.y
                     },
                     {
-                        x:(perp.hit[j+1].x + perp.pos.x)-offset.x,
-                        y:(perp.hit[j+1].y + perp.pos.y)-offset.y
+                        x:((perp.hit[j+1].x * perp.size) + perp.pos.x)-offset.x,
+                        y:((perp.hit[j+1].y * perp.size) + perp.pos.y)-offset.y
                     });
 
                     if(x)
