@@ -234,6 +234,15 @@ class Alien1 extends Movable {
             right: false
         };
 
+    //     let accel = new Vector2();
+
+    //     accel.Copy(this.target.pos)
+    //         .Subtract(this.pos)
+    //         .Normalize();
+
+    // accel.Multiply(0.3);
+    // this.velocity.Add(accel);
+
         if(this.target){           
 
             var distx = Util.AbsDist( this.target.pos.x, this.pos.x);
