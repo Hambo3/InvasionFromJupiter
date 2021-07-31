@@ -49,7 +49,6 @@ class GameObject{
         this.velocity = new Vector2();
         this.body;
 
-        this.direction = {v:0,h:1};
         this.motion = 0;
         this.frame = 0;
         this.speed = 0;
@@ -93,38 +92,7 @@ class GameObject{
     }
 }
 
-class Movable extends GameObject {
-    
-    constructor(pos, type)
-    {
-        super(pos, type);         
-    }
-
-    Movement(dt, input){        
-        this.direction.v = input.up ? -1 : input.down ? 1 : 0;
-        this.direction.h = input.left ? -1 : input.right ? 1 : 0;
-
-        var acceleration = new Vector2(this.direction.h, this.direction.v);
-
-        if (acceleration.x || acceleration.y)
-        {
-            acceleration.Normalize(dt);
-            acceleration.Multiply(this.speed);
-            this.velocity.Add(acceleration);
-        }
-        else
-        {
-            this.motion = 0;
-            this.frame = 0;
-        }
-    }
-
-    Update(dt){
-        super.Update(dt);
-    }
-}
-
-class Player extends Movable {
+class Player extends GameObject {
     
     constructor(pos)
     {
@@ -182,8 +150,8 @@ class Player extends Movable {
                     }
                     else{
                         GAME.gameObjects.Add(
-                            new Laser(new Vector2(this.pos.x+24, this.pos.y), C.ASSETS.PLRSHOT, 64 ));
-                    }                    
+                            new Lazer(new Vector2(this.pos.x+24, this.pos.y), C.ASSETS.PLRSHOT, 64 ));
+                    }
                 }
 
             }
@@ -193,13 +161,26 @@ class Player extends Movable {
             this.pos.y = Util.Clamp(this.pos.y, b.Min.y, b.Max.y);   
         }
 
-        super.Movement(dt,d);
+        var acc = new Vector2(d.left ? -1 : d.right ? 1 : 0, 
+            d.up ? -1 : d.down ? 1 : 0);
+
+        if (acc.x || acc.y)
+        {
+            acc.Normalize(dt);
+            acc.Multiply(this.speed);
+            this.velocity.Add(acc);
+        }
+        else
+        {
+            this.motion = 0;
+            this.frame = 0;
+        }
 
         super.Update(dt);
     }
 }
 
-class Alien1 extends Movable {
+class Alien1 extends GameObject {
     
     constructor(pos)
     {
@@ -227,45 +208,17 @@ class Alien1 extends Movable {
     }
 
     Update(dt){
-        var d = {
-            up: false,
-            down: false,
-            left: false,
-            right: false
-        };
-
-    //     let accel = new Vector2();
-
-    //     accel.Copy(this.target.pos)
-    //         .Subtract(this.pos)
-    //         .Normalize();
-
-    // accel.Multiply(0.3);
-    // this.velocity.Add(accel);
-
         if(this.target){           
 
-            var distx = Util.AbsDist( this.target.pos.x, this.pos.x);
-            var disty = Util.AbsDist( this.target.pos.y, this.pos.y);
-    
-            if(distx > disty){
-                if(this.target.pos.x > this.pos.x){
-                    d.right = true;
-                }
-                else if(this.target.pos.x < this.pos.x){
-                    d.left = true;      
-                }
-            }else{
-                if(this.target.pos.y > this.pos.y){
-                    d.down = true;           
-                }
-                else if(this.target.pos.y < this.pos.y){
-                    d.up = true;
-                }
-            }
-        }  
+            var accel = new Vector2();
 
-        super.Movement(dt, d);
+            accel.Copy(this.target.pos)
+            .Subtract(this.pos)
+            .Normalize();
+
+            accel.Multiply(0.3);
+            this.velocity.Add(accel);
+        }  
 
         this.motion=this.anim.Next(this.motion);
 
@@ -344,21 +297,6 @@ class Block extends Scrollable{
         this.pos = p;
         this.enabled = 1;
     }
-
-    xSet(p){
-        var hw = Util.RndI(2,4)*16;
-        var hgt = Util.RndI(1,6)*32;
-        this.width = hw *2;
-        this.height = hgt;
-        this.body = [
-                [0, [-hw,0, -hw,-hgt, hw,-hgt, hw,0]]
-        ];
-
-        this.hit = Util.HitBox(this.body[0][1]);
-
-        this.pos = p;
-        this.enabled = 1;
-    }
 }
 
 class Ground extends Scrollable{
@@ -431,7 +369,7 @@ class Shot extends GameObject{
     }
 }
 
-class Laser extends Shot{
+class Lazer extends Shot{
 
     constructor(pos, type, spd ){
         super(pos, type, spd);

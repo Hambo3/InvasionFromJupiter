@@ -20,15 +20,12 @@ var C = {
 }
 
 var TRANS = [
-    {t:200, d:1000, z:0,title:"BLETCHLEY",info:"RESCUE HUMANOIDS"},
-    {t:500, d:500, z:0, title:"SPACE",info:"SAVED"},
-    {t:500, d:500, z:0.001, title:"BOSS",info:"KILL THE BOSS"},
-    {t:500, d:1000, z:-0.001, title:"JUPITER",info:"PROCEDE TO JUPITER"}
-];
-
-var WAVE =[
-    {d:300,n:3, t:1, f:C.FORMATION.VERTICAL},
-    {d:500,n:5, t:1, f:C.FORMATION.HORIZONTAL}
+    {t:200, d:1000, z:0,title:"BLETCHLEY",info:["RESCUE HUMANOIDS", "BEAM [N]"]},
+    {t:500, d:500, z:0, title:"SPACE",info:["SAVED"]},
+    {t:500, d:500, z:0.001, title:"BOSS",info:["KILL THE BOSS"]},
+    {t:500, d:1000, z:-0.001, title:"JUPITER",info:["PROCEDE TO JUPITER"]},
+    {t:500, d:500, z:0, title:"SPACE",info:["SAVED"]},
+    {t:500, d:500, z:0.003, title:"BOSS",info:["KILL THE BOSS"]},
 ];
 
 var FONT = {    

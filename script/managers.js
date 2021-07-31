@@ -43,11 +43,11 @@ class Game{
 
         this.zoomTransition = 0;
 
-        this.ta = 0;
-        this.tb = 0;
-        this.tc = 0;
+        this.timer1 = 0;
+        this.timer2 = 0;
+        this.timer3 = 0;
+        this.ufoTimer = 1;
 
-        this.ufoWave = 0;
         this.opacity = 0.2;
 
         this.sky = new Vector2(0,0);
@@ -106,32 +106,27 @@ class Game{
         {
             if(this.transition==0){
                 this.sky.y++;
-                this.ta = this.ObjectGen(C.ASSETS.SHACK, Block, this.ta-dt, 1, 1, new Vector2(b.Max.x + 100, b.Max.y-16), 48);
-                this.tb = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.tb-dt, 0.4, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), 32);
+                this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 1, new Vector2(b.Max.x + 100, b.Max.y-16), 48);
+                this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), 32);
 
-                if(this.ufoWave < WAVE.length ){
-                    if((TRANS[this.level].d - this.levelDistance) > WAVE[this.ufoWave].d)
-                    {
-                        var w = WAVE[this.ufoWave];
-                        for (var i = 0; i < w.n; i++) {
-                            var d;
-                            if(w.t == 1)
-                            {
-                                d = new Alien1(new Vector2((30+(i*2))*32,(20+(i*2))*32));
-                            }
-                            this.gameObjects.Add(d);
-                            d.target = this.player;  
-                        }    
-                        
-                        this.ufoWave++;
-                    }
+                this.ufoTimer-=dt;
+                if(this.ufoTimer < 0 ){
+
+                    for (var i = 0; i < 3; i++) {
+                        var d = new Alien1(new Vector2((30+(i*2))*32,
+                                                        (20+(i*2))*32));
+
+                        d.target = this.player;                          
+                        this.gameObjects.Add(d);
+                    }    
+                    this.ufoTimer = Util.Rnd(1)+1;
                 }
             }
-            this.tc = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.tc-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), 32);
+            this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), 32);
         }
         if(this.level == 1 || this.level == 2)
         {
-            this.ta = this.ObjectGen(C.ASSETS.STAR, Star, this.ta-dt, 0, 0.3, new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), Util.RndI(0,3));
+            this.timer1 = this.ObjectGen(C.ASSETS.STAR, Star, this.timer1-dt, 0, 0.3, new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), Util.RndI(0,3));
         }
         if(this.level == 2){
             if(MAP.scale > 1.5)
@@ -147,12 +142,18 @@ class Game{
                 this.zoomTransition = 0;
             }
         }
+        if(this.level == 5){
+            if(MAP.scale == MAP.maxScale)
+            {
+                this.zoomTransition = 0;
+            }
+        }
     }
 
     Update(dt)
     {
         //#region DEBUG
-        DEBUG.Print("Z",MAP.scale);
+        DEBUG.Print("Z",MAP.scale+" "+MAP.minScale+" "+MAP.maxScale);
         DEBUG.Print("L",this.level);
         DEBUG.Print("T", this.transition);
         DEBUG.Print("D", this.levelDistance);
@@ -203,8 +204,12 @@ class Game{
 
         MAP.PostRender();
         if(this.transition){
-            SFX.Text(TRANS[this.level].title,350,300,4,1,"#ff0"); 
-            SFX.Text(TRANS[this.level].info,350,340,2,1,"#ff0"); 
+            var txt = TRANS[this.level];
+            SFX.Text(txt.title,(800/2)-((txt.title.length*(4*4))/2),200,4,1,"#ff0"); 
+            for (var i = 0; i < txt.info.length; i++) {
+                SFX.Text(txt.info[i],(800/2)-((txt.info[i].length*(4*2))/2),
+                240 + (i*16),2,1,"#ff0");            
+            }            
         }
         //
         //check collisions
@@ -312,11 +317,6 @@ class Render{
         this.bounds = {w:width,h:height};
 
         this.sky = Util.Context(64,64);
-        //this.sky 
-        // this.sky = document.createElement('canvas');
-        // this.sky.width = 64;
-		// this.sky.height = 64;
-        // var ctx = this.sky.getContext('2d');
 
         this.grd = this.sky.ctx.createLinearGradient(0, 0, 0, 64);
         this.grd.addColorStop(0, "#000");
