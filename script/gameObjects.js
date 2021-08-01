@@ -109,11 +109,17 @@ class Player extends GameObject {
         this.deadly = [C.ASSETS.SHACK];
         this.hit = Util.HitBox(this.body[0][1]);
         this.enabled = 1;
+        this.explodes = 0;
+        this.boom = [];
+        for (var i = 0; i < 8; i++) {
+            this.boom.push([0,[-4,-4, 4,-4, 4,4 -4,4]]);
+        }
     }
     
     Collider (perp){
-        this.enabled = false;
-        GAME.mode = 4;
+        //this.enabled = false;
+        this.explodes = 1;
+        GAME.PlayerDie();
     }
 
     Update(dt){
@@ -150,10 +156,9 @@ class Player extends GameObject {
                     }
                     else{
                         GAME.gameObjects.Add(
-                            new Lazer(new Vector2(this.pos.x+24, this.pos.y), C.ASSETS.PLRSHOT, 64 ));
+                            new Lazer(new Vector2(this.pos.x+24, this.pos.y), C.ASSETS.PLRSHOT ));
                     }
                 }
-
             }
 
             var b = MAP.ScreenBounds();
@@ -177,6 +182,17 @@ class Player extends GameObject {
         }
 
         super.Update(dt);
+    }
+
+    Render(x,y){
+        //render particles n stuff
+        if(this.explodes){
+            // for (var i = 0; i < this.boom.length; i++) {
+            //     var t = this.boom;
+            //     GFX.Sprite(this.pos.x-x, this.pos.y-y, 
+            //         t.boom, this.col, t.size);
+            // }
+        }
     }
 }
 
@@ -371,13 +387,14 @@ class Shot extends GameObject{
 
 class Lazer extends Shot{
 
-    constructor(pos, type, spd ){
-        super(pos, type, spd);
+    constructor(pos, type ){
+        super(pos, type, 128);
         this.col = ["#f00"];
 
         this.width = 8;
         this.height = 4;
 
+        this.trail = new ObjectPool();
         this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY];
 
         this.acceleration = new Vector2(1, 0);
@@ -398,6 +415,42 @@ class Lazer extends Shot{
         ];
         this.hit = Util.HitBox(this.body[0][1]);
         this.pos = p;
+        this.enabled = 1;
+    }
+
+    Update (dt){
+        var trails = this.trail.Get();
+        if(trails.length<16){
+            this.trail.Add( new Trail(this.pos.Clone(), this.col, this.Body()) );
+        }
+        super.Update(dt);
+    }
+
+    Render (x,y){
+        var trails = this.trail.Get();
+        if(this.enabled && trails.length > 0){
+            for (var i = 0; i < trails.length; i++) {
+                var t = trails[i];
+                GFX.Sprite(t.pos.x-x, t.pos.y-y, 
+                    t.body, ["rgba(255, 0, 0, "+t.op+")"], t.size);
+                t.op-=0.1;
+                if(t.op<=0){
+                    t.enabled = 0;
+                }
+            }
+        }
+        super.Render(x,y);
+    }
+}
+
+class Trail{
+    
+    constructor(pos, col, body, size){
+        this.pos = pos;
+        this.col = col;
+        this.body = body;
+        this.size = 1;
+        this.op = 1;
         this.enabled = 1;
     }
 }

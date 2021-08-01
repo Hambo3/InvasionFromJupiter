@@ -36,17 +36,17 @@ class Game{
 
         this.offset = MAP.ScrollTo(new Vector2(16*32,24*32));
 
-         this.level = 0;           
+        this.level = 0;           
         this.levelDistance = TRANS[this.level].d;
         this.transition = TRANS[this.level].t;
  
-
+        this.Lives = 3;
         this.zoomTransition = 0;
 
         this.timer1 = 0;
         this.timer2 = 0;
         this.timer3 = 0;
-        this.ufoTimer = 1;
+        this.ufoTimer = 111;
 
         this.opacity = 0.2;
 
@@ -54,6 +54,12 @@ class Game{
         this.Init(0);
     }
 
+    PlayerDie(){
+        this.Lives --;
+        if(this.lives==0){
+            GAME.mode = 4;
+        }
+    }
     Init(l)
     {
         if(l==0){
