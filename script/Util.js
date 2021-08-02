@@ -150,7 +150,10 @@ var ObjectPool = function () {
             else{
                 return (all) ? list.length : list.filter(l => l.enabled).length;
             }
-        }      
+        },
+        Clear: function(){
+            list = [];
+        }             
     }
 };
 

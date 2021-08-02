@@ -110,16 +110,26 @@ class Player extends GameObject {
         this.hit = Util.HitBox(this.body[0][1]);
         this.enabled = 1;
         this.explodes = 0;
-        this.boom = [];
-        for (var i = 0; i < 8; i++) {
-            this.boom.push([0,[-4,-4, 4,-4, 4,4 -4,4]]);
-        }
+        this.boom = [];        
     }
     
     Collider (perp){
         //this.enabled = false;
-        this.explodes = 1;
-        GAME.PlayerDie();
+        if(!this.explodes){
+            this.explodes = 1;
+            for (var i = 0; i < 8; i++) {
+                var b = new Particle(this.pos.Clone(), 0);
+                b.body = [
+                    [0,[-8,-8, 8,-8, 8,8 -8,8]]
+                ];
+                b.col = ["#ff0"];
+                b.enabled = 1;
+                b.speed=Util.RndI(24,32);
+                b.dir = new Vector2(Util.Rnd(2)-1, Util.Rnd(2)-1);
+                this.boom.push(b);
+            }
+        }
+        //GAME.PlayerDie();
     }
 
     Update(dt){
@@ -152,11 +162,11 @@ class Player extends GameObject {
                 if(bodies.length < 5){
                     var sh = GAME.gameObjects.Is( C.ASSETS.PLRSHOT);
                     if(sh){
-                        sh.Set( new Vector2(this.pos.x+16, this.pos.y) );
+                        sh.Set( new Vector2(this.pos.x+32, this.pos.y) );
                     }
                     else{
                         GAME.gameObjects.Add(
-                            new Lazer(new Vector2(this.pos.x+24, this.pos.y), C.ASSETS.PLRSHOT ));
+                            new Lazer(new Vector2(this.pos.x+32, this.pos.y), C.ASSETS.PLRSHOT ));
                     }
                 }
             }
@@ -171,8 +181,7 @@ class Player extends GameObject {
 
         if (acc.x || acc.y)
         {
-            acc.Normalize(dt);
-            acc.Multiply(this.speed);
+            acc.Normalize(dt).Multiply(this.speed);
             this.velocity.Add(acc);
         }
         else
@@ -181,18 +190,24 @@ class Player extends GameObject {
             this.frame = 0;
         }
 
+        if(this.explodes){
+            for (var i = 0; i < this.boom.length; i++) {
+                this.boom[i].Update(dt);                
+            }
+        }
+
         super.Update(dt);
     }
 
     Render(x,y){
         //render particles n stuff
         if(this.explodes){
-            // for (var i = 0; i < this.boom.length; i++) {
-            //     var t = this.boom;
-            //     GFX.Sprite(this.pos.x-x, this.pos.y-y, 
-            //         t.boom, this.col, t.size);
-            // }
+            for (var i = 0; i < this.boom.length; i++) {
+                this.boom[i].Render(x,y);                
+            }
         }
+
+        super.Render(x,y);
     }
 }
 
@@ -227,16 +242,29 @@ class Alien1 extends GameObject {
         if(this.target){           
 
             var accel = new Vector2();
+            accel.Copy(this.target.pos).Subtract(this.pos);
 
-            accel.Copy(this.target.pos)
-            .Subtract(this.pos)
-            .Normalize();
+            accel.Normalize(dt).Multiply(this.speed);
 
-            accel.Multiply(0.3);
             this.velocity.Add(accel);
         }  
 
         this.motion=this.anim.Next(this.motion);
+
+        super.Update(dt);
+    }
+}
+
+class Particle extends GameObject{
+
+    constructor(pos){
+        super(pos, 0);
+        this.dir;
+    }
+
+    Update(dt){
+        var acc = this.dir.Clone().Normalize(dt).Multiply(this.speed);
+        this.velocity.Add(acc);
 
         super.Update(dt);
     }
@@ -250,7 +278,8 @@ class Scrollable extends GameObject{
 
         this.speed = spd;
         this.deadly = null;
-        this.acceleration = new Vector2(-1, 0);
+
+        this.dir = new Vector2(-1, 0);
     }
     
     Update(dt){
@@ -260,9 +289,8 @@ class Scrollable extends GameObject{
             this.enabled = 0;
         }
 
-        this.acceleration.Normalize(dt);
-        this.acceleration.Multiply(this.speed);
-        this.velocity.Add(this.acceleration);
+        var acc = this.dir.Clone().Normalize(dt).Multiply(this.speed);
+        this.velocity.Add(acc);
 
         super.Update(dt);
     }
@@ -367,6 +395,7 @@ class Shot extends GameObject{
         super(pos, type);
 
         this.speed = spd;
+        this.dir;
     }
 
     Update(dt){
@@ -377,9 +406,8 @@ class Shot extends GameObject{
             this.enabled = 0;
         }
 
-        this.acceleration.Normalize(dt);
-        this.acceleration.Multiply(this.speed);
-        this.velocity.Add(this.acceleration);
+        var acc = this.dir.Clone().Normalize(dt).Multiply(this.speed);
+        this.velocity.Add(acc);
 
         super.Update(dt);
     }
@@ -389,7 +417,7 @@ class Lazer extends Shot{
 
     constructor(pos, type ){
         super(pos, type, 128);
-        this.col = ["#f00"];
+        this.col = ["#317179","#4ed7e7"];
 
         this.width = 8;
         this.height = 4;
@@ -397,7 +425,7 @@ class Lazer extends Shot{
         this.trail = new ObjectPool();
         this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY];
 
-        this.acceleration = new Vector2(1, 0);
+        this.dir = new Vector2(1, 0);
         this.Set(pos);
     }
 
@@ -411,17 +439,18 @@ class Lazer extends Shot{
 
     Set(p){
         this.body = [
-            [0,[-4,-2, 4,-2, 4,2, -4,2]]
+            [0,[-8,-1, 8,-1, 8,2, -8,2],1,[-8,0, 8,0, 8,1, -8,1]]
         ];
         this.hit = Util.HitBox(this.body[0][1]);
         this.pos = p;
         this.enabled = 1;
+        this.trail.Clear();
     }
 
     Update (dt){
         var trails = this.trail.Get();
         if(trails.length<16){
-            this.trail.Add( new Trail(this.pos.Clone(), this.col, this.Body()) );
+            this.trail.Add( new Trail(this.pos.Clone(), ["50,113,120","78,215,231"], this.Body()) );
         }
         super.Update(dt);
     }
@@ -432,7 +461,7 @@ class Lazer extends Shot{
             for (var i = 0; i < trails.length; i++) {
                 var t = trails[i];
                 GFX.Sprite(t.pos.x-x, t.pos.y-y, 
-                    t.body, ["rgba(255, 0, 0, "+t.op+")"], t.size);
+                    t.body, ["rgba(" + t.col[0] + ", "+t.op+")", "rgba(" + t.col[1] + ", "+t.op+")"], t.size);
                 t.op-=0.1;
                 if(t.op<=0){
                     t.enabled = 0;

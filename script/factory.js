@@ -20,7 +20,7 @@ var C = {
 }
 
 var TRANS = [
-    {t:200, d:1000, z:0,title:"BLETCHLEY",info:["RESCUE HUMANOIDS", "BEAM [N]"]},
+    {t:200, d:1000, z:0,title:"EARTH",info:["RESCUE HUMANOIDS", "BEAM [N]"]},
     {t:500, d:500, z:0, title:"SPACE",info:["SAVED"]},
     {t:500, d:500, z:0.001, title:"BOSS",info:["KILL THE BOSS"]},
     {t:500, d:1000, z:-0.001, title:"JUPITER",info:["PROCEDE TO JUPITER"]},
