@@ -29,6 +29,7 @@ class Game{
         this.mode = 3;
         this.scrollRate = 0.03;
         this.gameObjects = new ObjectPool(); 
+        this.particles = new ObjectPool(); 
 
         this.player = new Player(new Vector2(-2*32,24*32));
         this.player.auto = new Vector2(16*32,24*32);
@@ -54,11 +55,13 @@ class Game{
         this.Init(0);
     }
 
-    PlayerDie(){
+    PlayerDie(p){
         this.Lives --;
         if(this.lives==0){
             GAME.mode = 4;
         }
+        p.pos = new Vector2(-2*32,24*32);
+        p.auto = new Vector2(16*32,24*32);
     }
     Init(l)
     {
@@ -72,6 +75,21 @@ class Game{
                 s+=256;                  
             } while (s<b.Max.x);
 
+        }
+    }
+
+    ParticleGen(pos, n)
+    {
+        for (var i = 0; i < n; i++) {
+            var b = new Particle(pos.Clone(), 0);
+            b.body = [
+                [0,[-2,2, -2,-2, 2,-2, 2,2]]
+            ];
+            b.col = ["#ccc"];
+            b.enabled = 1;
+            b.speed = Util.RndI(24,32);
+            b.dir = new Vector2(Util.Rnd(2)-1, Util.Rnd(2)-1);
+            this.particles.Add(b);
         }
     }
 
@@ -188,6 +206,12 @@ class Game{
         for (var i = 0; i < bodies.length; i++) {
             bodies[i].Update(dt);
         }
+
+        var p = this.particles.Get();
+
+        for (var i = 0; i < p.length; i++) {
+            p[i].Update(dt);
+        }
     }
 
     Render()
@@ -206,6 +230,11 @@ class Game{
 
         for (var i = 0; i < bodies.length; i++) {
             bodies[i].Render(this.offset.x, this.offset.y);
+        }
+
+        var p = this.particles.Get();
+        for (var i = 0; i < p.length; i++) {
+            p[i].Render(this.offset.x, this.offset.y);
         }
 
         MAP.PostRender();

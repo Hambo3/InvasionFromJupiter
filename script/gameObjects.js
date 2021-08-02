@@ -108,28 +108,14 @@ class Player extends GameObject {
         this.height = 16;
         this.deadly = [C.ASSETS.SHACK];
         this.hit = Util.HitBox(this.body[0][1]);
-        this.enabled = 1;
-        this.explodes = 0;
-        this.boom = [];        
+        this.enabled = 1;      
     }
     
     Collider (perp){
         //this.enabled = false;
-        if(!this.explodes){
-            this.explodes = 1;
-            for (var i = 0; i < 8; i++) {
-                var b = new Particle(this.pos.Clone(), 0);
-                b.body = [
-                    [0,[-8,-8, 8,-8, 8,8 -8,8]]
-                ];
-                b.col = ["#ff0"];
-                b.enabled = 1;
-                b.speed=Util.RndI(24,32);
-                b.dir = new Vector2(Util.Rnd(2)-1, Util.Rnd(2)-1);
-                this.boom.push(b);
-            }
-        }
-        //GAME.PlayerDie();
+        GAME.ParticleGen(this.pos, 12);
+        GAME.PlayerDie(this);
+        super.Collider(perp);
     }
 
     Update(dt){
@@ -189,25 +175,7 @@ class Player extends GameObject {
             this.motion = 0;
             this.frame = 0;
         }
-
-        if(this.explodes){
-            for (var i = 0; i < this.boom.length; i++) {
-                this.boom[i].Update(dt);                
-            }
-        }
-
         super.Update(dt);
-    }
-
-    Render(x,y){
-        //render particles n stuff
-        if(this.explodes){
-            for (var i = 0; i < this.boom.length; i++) {
-                this.boom[i].Render(x,y);                
-            }
-        }
-
-        super.Render(x,y);
     }
 }
 
@@ -255,20 +223,6 @@ class Alien1 extends GameObject {
     }
 }
 
-class Particle extends GameObject{
-
-    constructor(pos){
-        super(pos, 0);
-        this.dir;
-    }
-
-    Update(dt){
-        var acc = this.dir.Clone().Normalize(dt).Multiply(this.speed);
-        this.velocity.Add(acc);
-
-        super.Update(dt);
-    }
-}
 
 class Scrollable extends GameObject{
 
@@ -310,7 +264,7 @@ class Block extends Scrollable{
     }
 
     Set(p){
-        var r = Util.RndI(1,6);
+        var r = Util.RndI(2,6);
         var c = Util.RndI(2,4);
         var hw = (c * 32)/2;
         var ht = r * 32;
@@ -469,6 +423,23 @@ class Lazer extends Shot{
             }
         }
         super.Render(x,y);
+    }
+}
+
+
+class Particle extends GameObject{
+
+    constructor(pos, gravity){
+        super(pos, 0);
+        this.dir;
+        this.gravity = gravity;
+        //this.damping = 0.8;
+    }
+
+    Update(dt){
+        var acc = this.dir.Clone().Normalize(dt).Multiply(this.speed);
+        this.velocity.Add(acc);
+        super.Update(dt);
     }
 }
 
