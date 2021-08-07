@@ -18,7 +18,9 @@ class Title{
     Render()
     {
         SFX.Box(0,0,SFX.bounds.w, SFX.bounds.h,"#888");
-        SFX.Text("0123456789ABCD",100,100,4, 1, "#FFF");       
+        SFX.Text("INVADERS",100,100,4, 1, "#FFF");
+        SFX.Text("FROM",100,100,4, 1, "#FFF");
+        SFX.Text("JUPITER",100,100,4, 1, "#FFF");
     }
 }
 
@@ -41,13 +43,13 @@ class Game{
         this.levelDistance = TRANS[this.level].d;
         this.transition = TRANS[this.level].t;
  
-        this.Lives = 3;
+        this.Lives = 99;
         this.zoomTransition = 0;
 
         this.timer1 = 0;
         this.timer2 = 0;
         this.timer3 = 0;
-        this.ufoTimer = 111;
+        this.ufoTimer = 1;
 
         this.opacity = 0.2;
 
@@ -57,8 +59,8 @@ class Game{
 
     PlayerDie(p){
         this.Lives --;
-        if(this.lives==0){
-            GAME.mode = 4;
+        if(this.Lives==0){
+            this.mode = 4;
         }
         p.pos = new Vector2(-2*32,24*32);
         p.auto = new Vector2(16*32,24*32);
@@ -78,18 +80,26 @@ class Game{
         }
     }
 
-    ParticleGen(pos, n)
+    ParticleGen(pos, n, col)
     {
         for (var i = 0; i < n; i++) {
-            var b = new Particle(pos.Clone(), 0);
+            var b = this.particles.Is(0);
+
+            if(!b){
+                b = new Particle(pos.Clone(), 0, col);
+                this.particles.Add(b);
+            }
+            b.pos = pos.Clone();
             b.body = [
                 [0,[-2,2, -2,-2, 2,-2, 2,2]]
             ];
-            b.col = ["#ccc"];
             b.enabled = 1;
-            b.speed = Util.RndI(24,32);
+            b.op = 1;
+            b.col = [col];
+            b.rgb = Util.ToRGB(col);
+            var s = 8*(i%3);
+            b.speed = Util.RndI(s,s+4);
             b.dir = new Vector2(Util.Rnd(2)-1, Util.Rnd(2)-1);
-            this.particles.Add(b);
         }
     }
 
@@ -137,10 +147,9 @@ class Game{
                 if(this.ufoTimer < 0 ){
 
                     for (var i = 0; i < 3; i++) {
-                        var d = new Alien1(new Vector2((30+(i*2))*32,
-                                                        (20+(i*2))*32));
+                        var d = new Alien2(new Vector2((30+(i*2))*32,  (20+(i*2))*32));
 
-                        d.target = this.player;                          
+                        d.target = this.player;
                         this.gameObjects.Add(d);
                     }    
                     this.ufoTimer = Util.Rnd(1)+1;
@@ -181,6 +190,8 @@ class Game{
         DEBUG.Print("L",this.level);
         DEBUG.Print("T", this.transition);
         DEBUG.Print("D", this.levelDistance);
+        DEBUG.Print("GO", this.gameObjects.Count(true));
+        DEBUG.Print("P", this.particles.Count(true));
 
         if(Input.IsDown('KeyX') ) {
             MAP.Zoom(0.01);
@@ -239,11 +250,12 @@ class Game{
 
         MAP.PostRender();
         if(this.transition){
+            var d = 800;//b.Max.x - b.Min.x
             var txt = TRANS[this.level];
-            SFX.Text(txt.title,(800/2)-((txt.title.length*(4*4))/2),200,4,1,"#ff0"); 
+            SFX.Text(txt.title,(d/2)-((txt.title.length*(4*4))/2),200,4,1,"#ff0"); 
             for (var i = 0; i < txt.info.length; i++) {
-                SFX.Text(txt.info[i],(800/2)-((txt.info[i].length*(4*2))/2),
-                240 + (i*16),2,1,"#ff0");            
+                SFX.Text(txt.info[i],(d/2)-((txt.info[i].length*(4*2))/2),
+                240 + (i*16),2,0,"#ff0");            
             }            
         }
         //

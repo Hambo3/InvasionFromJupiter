@@ -92,18 +92,20 @@ class GameObject{
     }
 }
 
+
 class Player extends GameObject {
     
     constructor(pos)
     {
         super(pos, C.ASSETS.PLAYER);
-        this.col = ["#AA9","#CCC"];
+        this.col = ["#ccc", "#999", "#888", "#777", "#555", "#19a", "#1a9", "#852"];
         this.speed = 48;
         this.damping = 0.8;
         this.auto = null;
         this.body = [
-            [0,[-16,0,16,0,-6,4],1,[-10,-4,16,-1,16,0,-16,0]]
+            [4,[-18,-4,-13,-3,-13,1,-18,3],1,[-12,-7,-6,-7,-8,-3,10,-3,7,0,-16,0],2,[-16,0,14,0,12,2,-9,3],0,[10,-3,16,-2,14,0,6,0],3,[-18,-13,-12,-7,-16,0,-18,-10],5,[-6,-7,1,-7,-1,-3,-8,-3],6,[1,-7,10,-3,-1,-3],3,[-13,-1,0,-1,0,1,-13,1]]
         ];
+        this.scale=1.5;
         this.width = 32;
         this.height = 16;
         this.deadly = [C.ASSETS.SHACK];
@@ -112,8 +114,7 @@ class Player extends GameObject {
     }
     
     Collider (perp){
-        //this.enabled = false;
-        GAME.ParticleGen(this.pos, 12);
+        GAME.ParticleGen(this.pos, 12, "#fff");
         GAME.PlayerDie(this);
         super.Collider(perp);
     }
@@ -154,6 +155,8 @@ class Player extends GameObject {
                         GAME.gameObjects.Add(
                             new Lazer(new Vector2(this.pos.x+32, this.pos.y), C.ASSETS.PLRSHOT ));
                     }
+
+                    AUDIO.Play();
                 }
             }
 
@@ -197,7 +200,7 @@ class Alien1 extends GameObject {
         this.anim = new Anim(8,3);
         this.target;
 
-        this.deadly = [C.ASSETS.SHACK];
+        //this.deadly = [C.ASSETS.SHACK];
         this.hit = Util.HitBox([-17,10,-10,4,-10,-4,-3,-8,3,-8,10,-4,10,4,17,10]);
         this.enabled = 1;
     }
@@ -206,6 +209,10 @@ class Alien1 extends GameObject {
         this.enabled = 0;
     }
 
+    Die(){
+        this.enabled = 0;
+        GAME.ParticleGen(this.pos, 24, "#5f5");
+    }
     Update(dt){
         if(this.target){           
 
@@ -218,6 +225,49 @@ class Alien1 extends GameObject {
         }  
 
         this.motion=this.anim.Next(this.motion);
+
+        super.Update(dt);
+    }
+}
+class Alien2 extends GameObject {
+    
+    constructor(pos)
+    {
+        super(pos, C.ASSETS.ENEMY);
+        this.col = ["#3b0", "#190", "#2A0", "#fb0"];
+        this.speed = 4;
+        this.damping = 0.99;
+        //this.width = 32;
+        //this.height = 32;
+        this.body = [
+            [0,[-18,0,-9,-6,9,-6,18,0],1,[-18,2,18,2,14,5,-14,5],2,[-18,0,18,0,18,2,-18,2],3,[-11,-2,-6,-2,-6,0,-11,0],3,[-3,-2,2,-2,2,0,-3,0],3,[5,-2,10,-2,10,0,5,0]]
+        ];
+        this.scale = 0.8;
+        this.target;
+
+        //this.deadly = [C.ASSETS.SHACK];
+        this.hit = Util.HitBox([-9,-5,9,-5,18,1,13,4,-13,4,-18,1]);
+        this.enabled = 1;
+    }
+    
+    Collider (perp){
+        this.enabled = 0;
+    }
+
+    Die(){
+        this.enabled = 0;
+        GAME.ParticleGen(this.pos, 24, "#3b0");
+    }
+    Update(dt){
+        if(this.target){           
+
+            var accel = new Vector2();
+            accel.Copy(this.target.pos).Subtract(this.pos);
+
+            accel.Normalize(dt).Multiply(this.speed);
+
+            this.velocity.Add(accel);
+        }  
 
         super.Update(dt);
     }
@@ -386,8 +436,12 @@ class Lazer extends Shot{
     Collider (perp){
         if(perp.type == C.ASSETS.ENEMY)
         {
-            perp.enabled = 0;
+            perp.Die();
         }
+        else{
+            GAME.ParticleGen(this.pos, 5, "#28f");
+        }
+
         this.enabled = false;
     }
 
@@ -433,13 +487,21 @@ class Particle extends GameObject{
         super(pos, 0);
         this.dir;
         this.gravity = gravity;
-        //this.damping = 0.8;
+        //this.col = [col];
+        //this.rgb = Util.ToRGB(col);
+        this.op = 1;
+        this.enabled = 1;
     }
 
     Update(dt){
         var acc = this.dir.Clone().Normalize(dt).Multiply(this.speed);
         this.velocity.Add(acc);
+        this.op-=0.01;
+        this.col = [Util.ToCOL(this.rgb, this.op)];
         super.Update(dt);
+        if(this.op<0){
+            this.enabled = 0;
+        }
     }
 }
 

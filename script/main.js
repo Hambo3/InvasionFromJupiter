@@ -27,9 +27,10 @@ var GFX;
 var SFX;
 var MAP;
 var AUDIO;
+var MUSIC;
 
 var DEBUG;
-var TEXT;
+//var TEXT;
 var map={
 	size:{
 		tile:{width:32, height:32},
@@ -66,20 +67,7 @@ function Start(canvasBody)
 		SFX = new Render(MAP.screenCtx, map.size.screen.width* map.size.tile.width, 
 			map.size.screen.height* map.size.tile.height);	
 		AUDIO = new TinySound();
-		// AUDIO = new Music2(
-		// 	[
-		// 		{
-		// 			key:"beep",
-		// 			src:"assets/beep.mp3",
-		// 			type:"play"
-		// 		},
-		// 		{
-		// 			key:"boing",
-		// 			src:"assets/boing.mp3",
-		// 			type:"play"
-		// 		}				
-		// 	]
-		// );
+		MUSIC = new TinyMusic();
 
 		DEBUG = new DebugEdit(MAP.screenCtx, 400, 600 ,'#fff');
 
@@ -131,6 +119,7 @@ function FixedLoop(){
 	if(GAME.mode == 2)
 	{
 		GAME = new Game();
+		MUSIC.Play();
 	}
 	else if(GAME.mode == 4)
 	{

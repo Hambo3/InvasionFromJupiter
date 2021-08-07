@@ -110,6 +110,17 @@ var Util = {
         canvas.width = w;
 		canvas.height = h;
         return {ctx:canvas.getContext('2d'), canvas:canvas};
+    },
+    ToRGB: function(col){
+        var seg = col.split(''); 
+        var rgb = [];
+        for (var i = 1; i < seg.length; i++) {
+            rgb.push(parseInt(seg[i], 16));
+        }
+        return rgb;
+    },
+    ToCOL: function(rgb, op){
+        return "rgba("+(rgb[0]*16)+","+(rgb[1]*16)+","+(rgb[2]*16)+","+op+")";
     }
 
 }
