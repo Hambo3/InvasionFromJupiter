@@ -43,7 +43,7 @@ class Game{
         this.levelDistance = TRANS[this.level].d;
         this.transition = TRANS[this.level].t;
  
-        this.Lives = 99;
+        this.Lives = 3;
         this.zoomTransition = 0;
 
         this.timer1 = 0;
@@ -146,10 +146,16 @@ class Game{
                 this.ufoTimer-=dt;
                 if(this.ufoTimer < 0 ){
 
-                    for (var i = 0; i < 3; i++) {
-                        var d = new Alien2(new Vector2((30+(i*2))*32,  (20+(i*2))*32));
+                    var b = MAP.ScreenBounds();
 
-                        d.target = this.player;
+                    var n = Util.RndI(3,6);                   
+                    var y = Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
+
+                    for (var i = 0; i < n; i++) {
+                        var p = new Vector2((b.Max.x+(2*32)) + ((i*2)*32),  y + ((i*1)*32)) ;
+                        var d = new Alien2(p);
+//                        var d = new Alien2(new Vector2((20+(i*2))*32,  (20+(i*2))*32));
+                        d.targetPos = new Vector2(b.Min.x-100, p.y);//this.player;
                         this.gameObjects.Add(d);
                     }    
                     this.ufoTimer = Util.Rnd(1)+1;
@@ -330,8 +336,7 @@ class MapManger{
         var sc = this.screenSize.Clone();
         sc.Multiply(this.scale);
         sc.Add(this.offset);
-        return {Min:this.offset,
-                Max:sc};
+        return {Min:this.offset, Max:sc};
     }
 
     PreRender(col){

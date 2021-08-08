@@ -2,6 +2,7 @@
 //https://javascript.info/class-inheritance
 //https://dev.to/nitdgplug/learn-javascript-through-a-game-1beh
 //https://www.minifier.org/
+//call yourself a galactic defender
 
 var rf = (function(){
   return window.requestAnimationFrame       ||
@@ -119,7 +120,7 @@ function FixedLoop(){
 	if(GAME.mode == 2)
 	{
 		GAME = new Game();
-		MUSIC.Play();
+		//MUSIC.Play();
 	}
 	else if(GAME.mode == 4)
 	{

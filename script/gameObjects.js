@@ -105,17 +105,20 @@ class Player extends GameObject {
         this.body = [
             [4,[-18,-4,-13,-3,-13,1,-18,3],1,[-12,-7,-6,-7,-8,-3,10,-3,7,0,-16,0],2,[-16,0,14,0,12,2,-9,3],0,[10,-3,16,-2,14,0,6,0],3,[-18,-13,-12,-7,-16,0,-18,-10],5,[-6,-7,1,-7,-1,-3,-8,-3],6,[1,-7,10,-3,-1,-3],3,[-13,-1,0,-1,0,1,-13,1]]
         ];
-        this.scale=1.5;
-        this.width = 32;
-        this.height = 16;
+        this.size = 1.0;
+        this.width = 32*this.size;
+        this.height = 16*this.size;
         this.deadly = [C.ASSETS.SHACK];
-        this.hit = Util.HitBox(this.body[0][1]);
+        this.hit = Util.HitBox([-15,-7,15,-2,12,1,-16,2]);
         this.enabled = 1;      
     }
     
-    Collider (perp){
+    Die(){
         GAME.ParticleGen(this.pos, 12, "#fff");
         GAME.PlayerDie(this);
+    }
+    Collider (perp){
+        this.Die();
         super.Collider(perp);
     }
 
@@ -198,9 +201,9 @@ class Alien1 extends GameObject {
             [0,[-10,3,10,3,20,11,-20,11],1,[-10,-4,10,-4,10,3,-10,3],0,[-10,-4,-8,-6,-5,-8,-2,-9,2,-9,5,-8,8,-6,10,-4],2,[-6,-2,-3,-2,-3,1,-6,1],2,[0,-2,3,-2,3,1,0,1],2,[6,-2,9,-2,9,1,6,1],2,[-10,-2,-9,-2,-9,1,-10,1]]
         ];
         this.anim = new Anim(8,3);
-        this.target;
+        this.targetPos;
 
-        //this.deadly = [C.ASSETS.SHACK];
+        this.deadly = [C.ASSETS.PLAYERasas];
         this.hit = Util.HitBox([-17,10,-10,4,-10,-4,-3,-8,3,-8,10,-4,10,4,17,10]);
         this.enabled = 1;
     }
@@ -214,10 +217,10 @@ class Alien1 extends GameObject {
         GAME.ParticleGen(this.pos, 24, "#5f5");
     }
     Update(dt){
-        if(this.target){           
+        if(this.targetPos){           
 
             var accel = new Vector2();
-            accel.Copy(this.target.pos).Subtract(this.pos);
+            accel.Copy(this.targetPos).Subtract(this.pos);
 
             accel.Normalize(dt).Multiply(this.speed);
 
@@ -237,17 +240,18 @@ class Alien2 extends GameObject {
         this.col = ["#3b0", "#190", "#2A0", "#fb0"];
         this.speed = 4;
         this.damping = 0.99;
-        //this.width = 32;
-        //this.height = 32;
+        this.width = 32;
+        this.height = 32;
         this.body = [
             [0,[-18,0,-9,-6,9,-6,18,0],1,[-18,2,18,2,14,5,-14,5],2,[-18,0,18,0,18,2,-18,2],3,[-11,-2,-6,-2,-6,0,-11,0],3,[-3,-2,2,-2,2,0,-3,0],3,[5,-2,10,-2,10,0,5,0]]
         ];
-        this.scale = 0.8;
-        this.target;
+        this.size = 0.8;
+        this.targetPos;
 
-        //this.deadly = [C.ASSETS.SHACK];
+        this.deadly = [C.ASSETS.PLAYER];
         this.hit = Util.HitBox([-9,-5,9,-5,18,1,13,4,-13,4,-18,1]);
         this.enabled = 1;
+        this.shotTimer = 1;
     }
     
     Collider (perp){
@@ -259,16 +263,36 @@ class Alien2 extends GameObject {
         GAME.ParticleGen(this.pos, 24, "#3b0");
     }
     Update(dt){
-        if(this.target){           
+        //track the player
+        if(this.targetPos){           
+
+            var b = MAP.ScreenBounds();
+            if((this.pos.x + this.width) < b.Min.x)
+            {
+                this.enabled = 0;
+            }
+
+            this.shotTimer -= dt;
+            if(this.shotTimer < 0 ){
+                var s = GAME.gameObjects.Is( C.ASSETS.EMYSHOT);
+                if(s){
+                    s.Set(new Vector2(this.pos.x, this.pos.y), new Vector2(Util.OneIn(2) ? 1 :-1, Util.OneIn(2) ? 1 :-1) );
+                }
+                else{
+                    s = new Bullet(new Vector2(this.pos.x, this.pos.y), C.ASSETS.EMYSHOT, 
+                                            64, new Vector2(Util.OneIn(2) ? 1 :-1, Util.OneIn(2) ? 1 :-1));
+                    GAME.gameObjects.Add(s);
+                }
+
+                this.shotTimer = Util.Rnd(1)+1;
+            }
 
             var accel = new Vector2();
-            accel.Copy(this.target.pos).Subtract(this.pos);
+            accel.Copy(this.targetPos).Subtract(this.pos);
 
             accel.Normalize(dt).Multiply(this.speed);
-
             this.velocity.Add(accel);
         }  
-
         super.Update(dt);
     }
 }
@@ -414,6 +438,44 @@ class Shot extends GameObject{
         this.velocity.Add(acc);
 
         super.Update(dt);
+    }
+}
+
+class Bullet extends Shot{
+
+    constructor(pos, type, spd, dir ){
+        super(pos, type, spd);
+        this.col = ["#F00"];
+
+        this.width = 4;
+        this.height = 4;
+
+        this.deadly = [C.ASSETS.SHACK, C.ASSETS.PLAYER];
+
+        this.body = [
+            [0,[-2,2, -2,-2, 2,-2, 2,2]]
+        ];
+        this.hit = Util.HitBox(this.body[0][1]);
+
+        this.Set(pos, dir);
+    }
+
+    Collider (perp){
+        if(perp.type == C.ASSETS.PLAYER)
+        {
+            perp.Die();
+        }
+        else{
+            GAME.ParticleGen(this.pos, 5, "#28f");
+        }
+        
+        this.enabled = false;
+    }
+
+    Set(p, dir){
+        this.dir = dir;
+        this.pos = p;
+        this.enabled = 1;
     }
 }
 
