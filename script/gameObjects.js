@@ -55,7 +55,7 @@ class GameObject{
         this.damping = 0.8;
         this.width = 0;
         this.height = 0;
-        this.hits = [];
+        this.hit = [];
         this.col = 0;
         this.size = 1;
     }
@@ -109,7 +109,7 @@ class Player extends GameObject {
         this.size = 1.0;
         this.width = 32*this.size;
         this.height = 16*this.size;
-        this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY];
+        this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY, C.ASSETS.BOSSPART];
         this.hit = Util.HitBox([-15,-7,15,-2,12,1,-16,2]);
         this.enabled = 1;      
     }
@@ -209,19 +209,20 @@ class Alien1 extends GameObject {
         this.anim = new Anim(8,3);
         this.targetPos;
 
-        this.deadly = [C.ASSETS.PLAYERasas];
+        this.deadly = null;
         this.hit = Util.HitBox([-17,10,-10,4,-10,-4,-3,-8,3,-8,10,-4,10,4,17,10]);
         this.enabled = 1;
     }
     
     Collider (perp){
-        this.enabled = 0;
+        this.Die();
     }
 
     Die(){
         this.enabled = 0;
         GAME.ParticleGen(this.pos, 24, "#5f5");
     }
+    
     Update(dt){
         if(this.targetPos){           
 
@@ -238,6 +239,7 @@ class Alien1 extends GameObject {
         super.Update(dt);
     }
 }
+
 class Alien2 extends GameObject {
     
     constructor(pos)
@@ -262,13 +264,14 @@ class Alien2 extends GameObject {
     }
     
     Collider (perp){
-        this.enabled = 0;
+        this.Die();
     }
 
     Die(){
         this.enabled = 0;
         GAME.ParticleGen(this.pos, 24, "#3b0");
     }
+    
     Update(dt){
         //track the player
         if(this.targetPos){
@@ -312,6 +315,100 @@ class Alien2 extends GameObject {
     }
 }
 
+class BossPanel extends GameObject {
+    
+    constructor(pos, body, col, target)
+    {
+        super(pos, C.ASSETS.BOSSPART);
+        this.col = ["#ccc","#999","#888","#777","#555"];
+        this.width = 32;
+        this.height = 32;
+        this.body = [
+            [col,body]
+        ];
+        this.target = target;
+        this.deadly = null;
+        this.hit = Util.HitBox(this.body[0][1]);
+        this.strength = 10;
+        this.enabled = 1;
+    }
+    
+    Collider (perp){
+        this.Die();
+    }
+
+    Die(){
+        if(--this.strength == 0){
+            this.enabled = 0;
+            GAME.ParticleGen(this.pos, 16, this.col[0]);
+        }
+    }
+    
+    Update(dt){
+        if(this.target){           
+
+            this.pos = this.target.pos;
+        }  
+
+        super.Update(dt);
+    }
+}
+
+class Boss extends GameObject {
+    
+    constructor(pos, template)
+    {
+        super(pos, C.ASSETS.ENEMY);
+        this.col = ["#3b0", "#190", "#2A0", "#fb0"];
+        this.speed = 2;
+        this.damping = 0.99;
+        this.width = 32;
+        this.height = 32;
+
+        this.body = [
+            [3,[-16,-16,16,-16,16,16,-16,16]]
+        ];
+
+        this.size = 1;
+        this.targetPos;
+        this.target;
+
+        this.deadly = null;
+        this.enabled = 1;
+        this.shotTimer = 1;
+        this.Init(template);
+    }
+    
+    Init(template){
+        for(var i = 0; i < template.length; i+=2) 
+        {
+            var p = new BossPanel(this.pos, template[i+1], template[i], this);
+            GAME.gameObjects.Add(p);
+        } 
+    }
+
+    Collider (perp){
+        this.Die();
+    }
+
+    Die(){
+        this.enabled = 0;
+        //GAME.ParticleGen(this.pos, 24, "#3b0");
+    }
+
+    Update(dt){
+        if(this.target){           
+
+            var accel = new Vector2();
+            accel.Copy(this.target.pos).Subtract(this.pos);
+
+            accel.Normalize(dt).Multiply(this.speed);
+
+            this.velocity.Add(accel);
+        } 
+        super.Update(dt);
+    }
+}
 
 class Scrollable extends GameObject{
 
@@ -504,7 +601,7 @@ class Lazer extends Shot{
         this.height = 4;
 
         this.trail = new ObjectPool();
-        this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY];
+        this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY,C.ASSETS.BOSSPART];
 
         this.dir = new Vector2(1, 0);
         this.Set(pos);

@@ -9,7 +9,9 @@ var C = {
         PLAYER:6,
         PLRSHOT:7,
         ENEMY:8,
-        EMYSHOT:9
+        EMYSHOT:9,
+        BOSS:10,
+        BOSSPART:11
      },
      FORMATION:{
          VERTICAL:0,
