@@ -90,6 +90,7 @@ class GameObject{
     Collider(perp){
 
     }
+    Die(){}
 }
 
 
@@ -108,18 +109,23 @@ class Player extends GameObject {
         this.size = 1.0;
         this.width = 32*this.size;
         this.height = 16*this.size;
-        this.deadly = [C.ASSETS.SHACK];
+        this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY];
         this.hit = Util.HitBox([-15,-7,15,-2,12,1,-16,2]);
         this.enabled = 1;      
     }
     
     Die(){
-        GAME.ParticleGen(this.pos, 12, "#fff");
-        GAME.PlayerDie(this);
+        if(!this.auto){
+            GAME.ParticleGen(this.pos, 12, "#fff");
+            GAME.PlayerDie(this);
+        }
     }
     Collider (perp){
-        this.Die();
-        super.Collider(perp);
+        if(!this.auto){
+            perp.Die();
+            this.Die();
+            super.Collider(perp);
+        }
     }
 
     Update(dt){
@@ -247,8 +253,9 @@ class Alien2 extends GameObject {
         ];
         this.size = 0.8;
         this.targetPos;
+        this.target;
 
-        this.deadly = [C.ASSETS.PLAYER];
+        this.deadly = null;
         this.hit = Util.HitBox([-9,-5,9,-5,18,1,13,4,-13,4,-18,1]);
         this.enabled = 1;
         this.shotTimer = 1;
@@ -264,7 +271,7 @@ class Alien2 extends GameObject {
     }
     Update(dt){
         //track the player
-        if(this.targetPos){           
+        if(this.targetPos){
 
             var b = MAP.ScreenBounds();
             if((this.pos.x + this.width) < b.Min.x)
@@ -272,19 +279,27 @@ class Alien2 extends GameObject {
                 this.enabled = 0;
             }
 
-            this.shotTimer -= dt;
-            if(this.shotTimer < 0 ){
-                var s = GAME.gameObjects.Is( C.ASSETS.EMYSHOT);
-                if(s){
-                    s.Set(new Vector2(this.pos.x, this.pos.y), new Vector2(Util.OneIn(2) ? 1 :-1, Util.OneIn(2) ? 1 :-1) );
-                }
-                else{
-                    s = new Bullet(new Vector2(this.pos.x, this.pos.y), C.ASSETS.EMYSHOT, 
-                                            64, new Vector2(Util.OneIn(2) ? 1 :-1, Util.OneIn(2) ? 1 :-1));
-                    GAME.gameObjects.Add(s);
-                }
+            if(this.target)
+            {
+                this.shotTimer -= dt;
+                if(this.shotTimer < 0 ){
+                    var s = GAME.gameObjects.Is( C.ASSETS.EMYSHOT);
 
-                this.shotTimer = Util.Rnd(1)+1;
+                    var d = new Vector2();
+                    d.Copy(this.target.pos).Subtract(this.pos);    
+                    d.Normalize(1);
+
+                    var p = this.pos.Clone().Add(d.Multiply(16));
+                    if(s){
+                        s.Set(p, d );
+                    }
+                    else{
+                        s = new Bullet(p, C.ASSETS.EMYSHOT, 128, d );
+                        GAME.gameObjects.Add(s);
+                    }
+
+                    this.shotTimer = Util.Rnd(1)+1;
+                }
             }
 
             var accel = new Vector2();
@@ -379,16 +394,16 @@ class Ground extends Scrollable{
         this.width = 256;
         this.height = 32;        
         this.col = ["#444"];
-        this.Set(pos);
-    }
-
-    Set(p){
         this.body = [
             [0, [-128,0, -128,-32, 128,-32, 128,0]]
         ];
 
-        this.hit = Util.HitBox(this.body[0][1]);
+        this.hit = Util.HitBox(this.body[0][1]);       
 
+        this.Set(pos);
+    }
+
+    Set(p){
         this.pos = p;
         this.enabled = 1;
     }
@@ -496,14 +511,8 @@ class Lazer extends Shot{
     }
 
     Collider (perp){
-        if(perp.type == C.ASSETS.ENEMY)
-        {
-            perp.Die();
-        }
-        else{
-            GAME.ParticleGen(this.pos, 5, "#28f");
-        }
-
+        perp.Die();
+        GAME.ParticleGen(this.pos, 5, "#28f");
         this.enabled = false;
     }
 

@@ -2,7 +2,7 @@
 //https://javascript.info/class-inheritance
 //https://dev.to/nitdgplug/learn-javascript-through-a-game-1beh
 //https://www.minifier.org/
-//call yourself a galactic defender
+//some galactic defender you are
 
 var rf = (function(){
   return window.requestAnimationFrame       ||
@@ -35,7 +35,7 @@ var DEBUG;
 var map={
 	size:{
 		tile:{width:32, height:32},
-		screen:{width:25, height:19},
+		screen:{width:28, height:19},
 		world:{width:64, height:48},
 	},
 	data:[]
@@ -98,16 +98,16 @@ function FixedLoop(){
 	// 	console.log("play");
 	//  }
 
-	// if(Input.IsSingle('KeyY') ) {
-	// 	slowMo+=1;
-	// 	SlowMo(slowMo);		
-	// }
-	// else if(Input.IsSingle('KeyT') ) {
-	// 	if(slowMo-1 > 0){
-	// 		slowMo-=1;
-	// 		SlowMo(slowMo);
-	// 	}
-	// }
+	if(Input.IsSingle('KeyY') ) {
+		slowMo+=1;
+		SlowMo(slowMo);		
+	}
+	else if(Input.IsSingle('KeyT') ) {
+		if(slowMo-1 > 0){
+			slowMo-=1;
+			SlowMo(slowMo);
+		}
+	}
 
 	// if(Input.IsDown('KeyX') ) {
 	// 	MAP.Zoom(0.01);

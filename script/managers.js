@@ -52,8 +52,6 @@ class Game{
         this.ufoTimer = 1;
 
         this.opacity = 0.2;
-
-        this.sky = new Vector2(0,0);
         this.Init(0);
     }
 
@@ -63,7 +61,7 @@ class Game{
             this.mode = 4;
         }
         p.pos = new Vector2(-2*32,24*32);
-        p.auto = new Vector2(16*32,24*32);
+        p.auto = new Vector2(8*32,24*32);
     }
     Init(l)
     {
@@ -139,27 +137,32 @@ class Game{
         if(this.level == 0)
         {
             if(this.transition==0){
-                this.sky.y++;
                 this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 1, new Vector2(b.Max.x + 100, b.Max.y-16), 48);
                 this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), 32);
 
-                this.ufoTimer-=dt;
-                if(this.ufoTimer < 0 ){
+                if(!this.player.auto){
+                    this.ufoTimer-=dt;
+                    if(this.ufoTimer < 0 ){
 
-                    var b = MAP.ScreenBounds();
+                        var b = MAP.ScreenBounds();
 
-                    var n = Util.RndI(3,6);                   
-                    var y = Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
+                        var n = Util.RndI(3,6);                   
+                        var y = Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
 
-                    for (var i = 0; i < n; i++) {
-                        var p = new Vector2((b.Max.x+(2*32)) + ((i*2)*32),  y + ((i*1)*32)) ;
-                        var d = new Alien2(p);
-//                        var d = new Alien2(new Vector2((20+(i*2))*32,  (20+(i*2))*32));
-                        d.targetPos = new Vector2(b.Min.x-100, p.y);//this.player;
-                        this.gameObjects.Add(d);
-                    }    
-                    this.ufoTimer = Util.Rnd(1)+1;
+                        //this is not pooling??
+                        
+                        for (var i = 0; i < n; i++) {
+                            var p = new Vector2((b.Max.x+(2*32)) + ((i*2)*32),  y + ((i*1)*32)) ;
+                            var d = new Alien2(p);
+    //                        var d = new Alien2(new Vector2((20+(i*2))*32,  (20+(i*2))*32));
+                            d.targetPos = new Vector2(b.Min.x-100, p.y);
+                            d.target = this.player;
+                            this.gameObjects.Add(d);
+                        }    
+                        this.ufoTimer = Util.Rnd(2)+2;
+                    }
                 }
+
             }
             this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), 32);
         }
@@ -241,8 +244,9 @@ class Game{
         });
 
         MAP.PreRender("#000");
-        if(this.level == 0){
-            GFX.Image(GFX.sky.canvas, this.sky, {x:800,y:600}, {x:0,y:0}, {x:64,y:64});
+        if(this.level == 0){            
+            GFX.Image(GFX.sky.canvas, new Vector2(0, Util.Remap(0, 1000, b.Max.y-b.Min.y,0, this.levelDistance)), 
+                {x:b.Max.x-b.Min.x,y:b.Max.y-b.Min.y}, {x:0,y:0}, {x:64,y:64});
         }
 
         for (var i = 0; i < bodies.length; i++) {
@@ -372,7 +376,7 @@ class Render{
 
         this.grd = this.sky.ctx.createLinearGradient(0, 0, 0, 64);
         this.grd.addColorStop(0, "#000");
-        this.grd.addColorStop(1, "#390c31");
+        this.grd.addColorStop(1, "#7140c6");
         this.sky.ctx.fillStyle = this.grd;
         this.sky.ctx.fillRect(0, 0, 64, 64);
     }

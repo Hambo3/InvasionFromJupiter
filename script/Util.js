@@ -77,6 +77,15 @@ var Util = {
     {
         return (end-start) * amt+start;
     },
+    InvLerp: function(start, end, amt)
+    {
+        return (amt-start) / (end - start);
+    },
+    Remap: function(origFrom, origTo, targetFrom, targetTo, value)
+    {
+        var rel = Util.InvLerp(origFrom, origTo, value);
+        return Util.Lerp(targetFrom, targetTo, rel);
+    },
     HitBox: function(body){
         var hit = [];
         for (var i = 0; i < body.length-1; i+=2) {
