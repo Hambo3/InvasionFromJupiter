@@ -90,7 +90,10 @@ class GameObject{
     Collider(perp){
 
     }
-    Die(){}
+    Die(){
+        this.enabled = 0;
+        this.velocity = new Vector2();
+    }
 }
 
 
@@ -207,7 +210,7 @@ class Alien1 extends GameObject {
             [0,[-10,3,10,3,20,11,-20,11],1,[-10,-4,10,-4,10,3,-10,3],0,[-10,-4,-8,-6,-5,-8,-2,-9,2,-9,5,-8,8,-6,10,-4],2,[-6,-2,-3,-2,-3,1,-6,1],2,[0,-2,3,-2,3,1,0,1],2,[6,-2,9,-2,9,1,6,1],2,[-10,-2,-9,-2,-9,1,-10,1]]
         ];
         this.anim = new Anim(8,3);
-        this.targetPos;
+        this.target;
 
         this.deadly = null;
         this.hit = Util.HitBox([-17,10,-10,4,-10,-4,-3,-8,3,-8,10,-4,10,4,17,10]);
@@ -219,15 +222,15 @@ class Alien1 extends GameObject {
     }
 
     Die(){
-        this.enabled = 0;
         GAME.ParticleGen(this.pos, 24, "#5f5");
+        super.Die();
     }
     
     Update(dt){
-        if(this.targetPos){           
+        if(this.target){           
 
             var accel = new Vector2();
-            accel.Copy(this.targetPos).Subtract(this.pos);
+            accel.Copy(this.target.pos).Subtract(this.pos);
 
             accel.Normalize(dt).Multiply(this.speed);
 
@@ -268,8 +271,8 @@ class Alien2 extends GameObject {
     }
 
     Die(){
-        this.enabled = 0;
         GAME.ParticleGen(this.pos, 24, "#3b0");
+        super.Die();
     }
     
     Update(dt){
@@ -317,20 +320,22 @@ class Alien2 extends GameObject {
 
 class BossPanel extends GameObject {
     
-    constructor(pos, body, col, target)
+    constructor(pos, body, func, parent)
     {
         super(pos, C.ASSETS.BOSSPART);
-        this.col = ["#ccc","#999","#888","#777","#555"];
+        this.col = ["#ccc","#999","#888","#777","#555","#f00"];
         this.width = 32;
         this.height = 32;
         this.body = [
-            [col,body]
+            body
         ];
-        this.target = target;
+        this.parent = parent;
         this.deadly = null;
-        this.hit = Util.HitBox(this.body[0][1]);
+        this.hit = Util.HitBox(this.body[0][1]);//1st panel must define hitbox also
         this.strength = 10;
         this.enabled = 1;
+        this.shotTimer = 1;
+        this.func = func;
     }
     
     Collider (perp){
@@ -338,19 +343,54 @@ class BossPanel extends GameObject {
     }
 
     Die(){
-        if(--this.strength == 0){
-            this.enabled = 0;
+        if(--this.strength == 0){            
             GAME.ParticleGen(this.pos, 16, this.col[0]);
+            super.Die();
         }
     }
     
     Update(dt){
-        if(this.target){           
+        if(this.parent){
+            this.pos = this.parent.pos;
 
-            this.pos = this.target.pos;
+            if(this.parent.target && this.func != 0)
+            {
+                this.shotTimer -= dt;
+                if(this.shotTimer < 0 ){
+                    this.Launch();
+                    this.shotTimer = Util.Rnd(1)+1;
+                }
+            }            
         }  
 
         super.Update(dt);
+    }
+
+    Launch(){
+        var s = GAME.gameObjects.Is( this.func == 1 ? C.ASSETS.EMYSHOT : C.ASSETS.ENEMY );
+
+        var d = new Vector2();
+        var basePos = this.pos.Clone();
+        var os = Util.BodyCenter(this.body[0][1]);
+        basePos.Add(os);
+        d.Copy(this.parent.target.pos).Subtract(basePos);    
+        d.Normalize(1);
+
+        var p = basePos.Add(d.Multiply(1));
+        if(s){
+            s.Set(p, d );
+        }
+        else{
+            if(this.func == 1){
+                s = new Bullet(p, C.ASSETS.EMYSHOT, 128, d );
+            }
+            else{
+                s = new Alien1(p);
+                s.target = this.parent.target;
+            }
+
+            GAME.gameObjects.Add(s);
+        }
     }
 }
 
@@ -380,9 +420,9 @@ class Boss extends GameObject {
     }
     
     Init(template){
-        for(var i = 0; i < template.length; i+=2) 
+        for(var i = 0; i < template.length; i++) 
         {
-            var p = new BossPanel(this.pos, template[i+1], template[i], this);
+            var p = new BossPanel(this.pos, template[i][1], template[i][0], this);
             GAME.gameObjects.Add(p);
         } 
     }
@@ -392,8 +432,7 @@ class Boss extends GameObject {
     }
 
     Die(){
-        this.enabled = 0;
-        //GAME.ParticleGen(this.pos, 24, "#3b0");
+        super.Die();
     }
 
     Update(dt){
@@ -422,6 +461,9 @@ class Scrollable extends GameObject{
         this.dir = new Vector2(-1, 0);
     }
     
+    Die(){
+        //do nothing;
+    }
     Update(dt){
         var b = MAP.ScreenBounds();
         if((this.pos.x + this.width) < b.Min.x)
@@ -538,12 +580,16 @@ class Shot extends GameObject{
         this.dir;
     }
 
+    Die(){
+        super.Die();
+    }
+
     Update(dt){
         var b = MAP.ScreenBounds();
         if(this.pos.x < b.Min.x || this.pos.x > b.Max.x || 
             this.pos.y < b.Min.y || this.pos.y > b.Max.y)
         {
-            this.enabled = 0;
+            this.Die();
         }
 
         var acc = this.dir.Clone().Normalize(dt).Multiply(this.speed);
@@ -557,7 +603,7 @@ class Bullet extends Shot{
 
     constructor(pos, type, spd, dir ){
         super(pos, type, spd);
-        this.col = ["#F00"];
+        this.col = ["#FF0"];
 
         this.width = 4;
         this.height = 4;
@@ -581,11 +627,12 @@ class Bullet extends Shot{
             GAME.ParticleGen(this.pos, 5, "#28f");
         }
         
-        this.enabled = false;
+        super.Die();
     }
 
     Set(p, dir){
         this.dir = dir;
+        this.velocity = new Vector2();
         this.pos = p;
         this.enabled = 1;
     }
@@ -610,7 +657,7 @@ class Lazer extends Shot{
     Collider (perp){
         perp.Die();
         GAME.ParticleGen(this.pos, 5, "#28f");
-        this.enabled = false;
+        super.Die();
     }
 
     Set(p){
