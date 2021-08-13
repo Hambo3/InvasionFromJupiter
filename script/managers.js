@@ -52,7 +52,7 @@ class Game{
         this.ufoTimer = 1;
 
         this.opacity = 0.2;
-        this.Init(0);
+        this.Init(0);        
     }
 
     PlayerDie(p){
@@ -144,22 +144,41 @@ class Game{
                     this.ufoTimer-=dt;
                     if(this.ufoTimer < 0 ){
 
-                        var b = MAP.ScreenBounds();
+                        var bs = new Boss(new Vector2(18*32,24*32),
+                        [
+                            [0,[3,[-16,-16,16,-16,16,16,-16,16]]],
+                            [0,[2,[-48,-48,-16,-48,-16,-16,-48,-16]]],
+                            [0,[2,[-48,-16,-16,-16,-16,16,-48,16]]],
+                            [0,[2,[-48,16,-16,16,-16,48,-48,48]]],
+                            [0,[3,[-16,-48,16,-48,16,-16,-16,-16]]],
+                            [0,[3,[-16,16,16,16,16,48,-16,48]]],
+                            [1,[1,[-16,-80,16,-80,16,-48,-16,-48],5,[-7,-70,6,-70,6,-58,-7,-58]]],
+                            [2,[4,[-16,48,16,48,16,80,-16,80],5,[-7,58,6,58,6,70,-7,70]]],
+                            [0,[3,[-48,48,-16,48,-16,80]]],
+                            [0,[0,[-16,-80,-16,-48,-48,-48]]]
+                        ]);
+                        bs.target = this.player;
+                        this.gameObjects.Add(bs);
+                        this.ufoTimer = 999;
 
-                        var n = Util.RndI(3,6);                   
-                        var y = Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
+                        //regular alien
+                        //var n = Util.RndI(3,6);                   
+                        //var y = Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
 
                         //this is not pooling??
                         
-                        for (var i = 0; i < n; i++) {
-                            var p = new Vector2((b.Max.x+(2*32)) + ((i*2)*32),  y + ((i*1)*32)) ;
-                            var d = new Alien2(p);
-    //                        var d = new Alien2(new Vector2((20+(i*2))*32,  (20+(i*2))*32));
-                            d.targetPos = new Vector2(b.Min.x-100, p.y);
-                            d.target = this.player;
-                            this.gameObjects.Add(d);
-                        }    
-                        this.ufoTimer = Util.Rnd(2)+2;
+                        // for (var i = 0; i < n; i++) {
+                        //     var p = new Vector2((b.Max.x+(2*32)) + ((i*2)*32),  y + ((i*1)*32)) ;
+
+                        //     // var d = new Alien2(p);
+                        //     // d.targetPos = new Vector2(b.Min.x-100, p.y);
+                        //     // d.target = this.player;
+
+                        //     // var d = new Alien1(p);
+                        //     // d.target = this.player;
+                        //     // this.gameObjects.Add(d);
+                        // }    
+                        // this.ufoTimer = Util.Rnd(2)+2;
                     }
                 }
 

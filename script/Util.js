@@ -94,6 +94,18 @@ var Util = {
         hit.push(hit[0]);
         return hit;
     }, 
+    BodyCenter: function(body){
+        var xs = [];
+        var ys = [];
+        for (var i = 0; i < body.length-1; i+=2) {
+            xs.push(body[i]);
+            ys.push(body[i+1]);
+        }
+        var minx = Math.min(...xs);
+        var miny = Math.min(...ys);
+        return new Vector2( minx+((Math.max(...xs) - minx)/2), 
+                 miny+((Math.max(...ys) - miny)/2));
+    }, 
     //int min to max-1
     RndI: function (min, max){
         return parseInt(Math.random() * (max-min)) + min;
