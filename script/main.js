@@ -3,6 +3,7 @@
 //https://dev.to/nitdgplug/learn-javascript-through-a-game-1beh
 //https://www.minifier.org/
 //some galactic defender you are
+//https://keithclark.github.io/ZzFXM/tracker/
 
 var rf = (function(){
   return window.requestAnimationFrame       ||
@@ -120,7 +121,7 @@ function FixedLoop(){
 	if(GAME.mode == 2)
 	{
 		GAME = new Game();
-		//MUSIC.Play();
+		MUSIC.Play();
 	}
 	else if(GAME.mode == 4)
 	{
