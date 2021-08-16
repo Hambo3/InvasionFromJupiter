@@ -2,6 +2,7 @@
 //https://javascript.info/class-inheritance
 //https://dev.to/nitdgplug/learn-javascript-through-a-game-1beh
 //https://www.minifier.org/
+//https://try.terser.org/
 //some galactic defender you are
 //https://keithclark.github.io/ZzFXM/tracker/
 
@@ -121,7 +122,7 @@ function FixedLoop(){
 	if(GAME.mode == 2)
 	{
 		GAME = new Game();
-		MUSIC.Play();
+		//MUSIC.Play();
 	}
 	else if(GAME.mode == 4)
 	{

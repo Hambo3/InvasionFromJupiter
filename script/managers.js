@@ -43,7 +43,7 @@ class Game{
         this.levelDistance = TRANS[this.level].d;
         this.transition = TRANS[this.level].t;
  
-        this.Lives = 3;
+        this.Lives = 33;
         this.zoomTransition = 0;
 
         this.timer1 = 0;
@@ -51,6 +51,7 @@ class Game{
         this.timer3 = 0;
         this.ufoTimer = 1;
 
+        this.boss = null;
         this.opacity = 0.2;
         this.Init(0);        
     }
@@ -136,6 +137,7 @@ class Game{
 
         if(this.level == 0)
         {
+
             if(this.transition==0){
                 this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 1, new Vector2(b.Max.x + 100, b.Max.y-16), 48);
                 this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), 32);
@@ -144,57 +146,95 @@ class Game{
                     this.ufoTimer-=dt;
                     if(this.ufoTimer < 0 ){
 
-                        var bs = new Boss(new Vector2(18*32,24*32),
-                        [
-                            [0,[3,[-16,-16,16,-16,16,16,-16,16]]],
-                            [0,[2,[-48,-48,-16,-48,-16,-16,-48,-16]]],
-                            [0,[2,[-48,-16,-16,-16,-16,16,-48,16]]],
-                            [0,[2,[-48,16,-16,16,-16,48,-48,48]]],
-                            [0,[3,[-16,-48,16,-48,16,-16,-16,-16]]],
-                            [0,[3,[-16,16,16,16,16,48,-16,48]]],
-                            [1,[1,[-16,-80,16,-80,16,-48,-16,-48],5,[-7,-70,6,-70,6,-58,-7,-58]]],
-                            [2,[4,[-16,48,16,48,16,80,-16,80],5,[-7,58,6,58,6,70,-7,70]]],
-                            [0,[3,[-48,48,-16,48,-16,80]]],
-                            [0,[0,[-16,-80,-16,-48,-48,-48]]]
-                        ]);
-                        bs.target = this.player;
-                        this.gameObjects.Add(bs);
-                        this.ufoTimer = 999;
-
                         //regular alien
-                        //var n = Util.RndI(3,6);                   
-                        //var y = Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
+                        var t = Util.RndI(0,2);   
+                        var n = Util.RndI(3,6);                   
+                        var y = Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
 
                         //this is not pooling??
                         
-                        // for (var i = 0; i < n; i++) {
-                        //     var p = new Vector2((b.Max.x+(2*32)) + ((i*2)*32),  y + ((i*1)*32)) ;
+                        for (var i = 0; i < n; i++) {
+                            var p = new Vector2((b.Max.x+(2*32)) + ((i*2)*32),  //y) ;
+                                                        y + ((i*1)*32)) ;
+                            var d = new Alien(p, t);
+                            if(t==1){
+                                d.targetPos = new Vector2(b.Min.x-100, p.y);
+                            }
 
-                        //     // var d = new Alien2(p);
-                        //     // d.targetPos = new Vector2(b.Min.x-100, p.y);
-                        //     // d.target = this.player;
-
-                        //     // var d = new Alien1(p);
-                        //     // d.target = this.player;
-                        //     // this.gameObjects.Add(d);
-                        // }    
-                        // this.ufoTimer = Util.Rnd(2)+2;
+                            d.target = this.player;
+                            this.gameObjects.Add(d);
+                        }    
+                        this.ufoTimer = Util.Rnd(2)+2;
                     }
-                }
-
-            }
+                }                
+            }  
+            
             this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), 32);
         }
-        if(this.level == 1 || this.level == 2)
+        if(this.level > 0)      //its space!
         {
             this.timer1 = this.ObjectGen(C.ASSETS.STAR, Star, this.timer1-dt, 0, 0.3, new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), Util.RndI(0,3));
         }
-        if(this.level == 2){
+        if(this.level == 1){
+            if(this.transition==0){
+                if(!this.player.auto){
+                    this.ufoTimer-=dt;
+                    if(this.ufoTimer < 0 ){
+                        //regular alien
+                        var t = 1;//Util.RndI(0,2);   
+                        var n = Util.RndI(3,6);                   
+                        var y = Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
+
+                        //this is not pooling??
+                        
+                        for (var i = 0; i < n; i++) {
+                            var p = new Vector2((b.Max.x+(2*32)) + ((i*2)*32),  //y) ;
+                                                        y + ((i*1)*32)) ;
+                            var d = new Alien(p, t);
+                            d.targetPos = new Vector2(b.Min.x-100, p.y);
+
+                            d.target = this.player;
+                            this.gameObjects.Add(d);
+                        }    
+                        this.ufoTimer = Util.Rnd(2)+2;
+                    }
+                }
+            }
+            else{
+                this.ufoTimer = 1;
+            }
+        }
+
+        if(this.level == 2){    //first boss
             if(MAP.scale > 1.5)
             {
                 this.zoomTransition = 0;
                 MAP.scale = 1.5;
             }
+
+            //if(this.transition==1){
+                
+                if(!this.boss){
+                    this.boss = new Boss(new Vector2(b.Max.x + (10*32), b.Min.y + ((b.Max.y - b.Min.y)/2)),
+                    [
+                        [0,[3,[-16,-16,16,-16,16,16,-16,16]]],
+                        [0,[2,[-48,-48,-16,-48,-16,-16,-48,-16]]],
+                        [0,[2,[-48,-16,-16,-16,-16,16,-48,16]]],
+                        [0,[2,[-48,16,-16,16,-16,48,-48,48]]],
+                        [0,[3,[-16,-48,16,-48,16,-16,-16,-16]]],
+                        [0,[3,[-16,16,16,16,16,48,-16,48]]],
+                        [0,[1,[-16,-80,16,-80,16,-48,-16,-48],5,[-7,-70,6,-70,6,-58,-7,-58]]],
+                        [0,[4,[-16,48,16,48,16,80,-16,80],5,[-7,58,6,58,6,70,-7,70]]],
+                        [0,[3,[-48,48,-16,48,-16,80]]],
+                        [0,[0,[-16,-80,-16,-48,-48,-48]]]
+                    ]);
+                    this.boss.target = this.player;
+                    this.boss.targetPos = new Vector2(b.Max.x + (2*32), 
+                                            b.Min.y + ((b.Max.y - b.Min.y)/2) );
+                    this.gameObjects.Add(this.boss);
+                }
+            //}
+
         }
         if(this.level == 3){
             if(MAP.scale < 1)
