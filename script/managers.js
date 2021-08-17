@@ -3,6 +3,10 @@ class Title{
     constructor()
     {
         this.mode = 1;
+        this.col = new Color(100,100,100,0);
+        this.toCol = new Color(250,10,10,1);
+        this.titleTimer = 1;
+        this.titleRate = 0;
     }
 
     Events(dt){
@@ -13,14 +17,24 @@ class Title{
         if(Input.IsSingle('KeyS') ) {
             this.mode = 2;
         }
+
+        this.titleTimer -= dt;
+
+        if(this.titleTimer <= 0){
+            this.titleRate += 0.01;
+            if(this.titleRate < 1){
+                this.titleTimer = 0.10;
+            }          
+        }
     }
 
     Render()
     {
+        var c = this.col.Clone().Lerp(this.toCol, this.titleRate).RGBA(); 
         SFX.Box(0,0,SFX.bounds.w, SFX.bounds.h,"#888");
-        SFX.Text("INVADERS",100,100,4, 1, "#FFF");
-        SFX.Text("FROM",100,100,4, 1, "#FFF");
-        SFX.Text("JUPITER",100,100,4, 1, "#FFF");
+        SFX.Text("INVADERS",100,100,4, 1, c);
+        SFX.Text("FROM",100,140,4, 1, c);
+        SFX.Text("JUPITER",100,180,4, 1, c);
     }
 }
 
@@ -148,6 +162,7 @@ class Game{
 
                         //regular alien
                         var t = Util.RndI(0,2);   
+                        var m = Util.RndI(0,2);
                         var n = Util.RndI(3,6);                   
                         var y = Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
 
@@ -156,8 +171,8 @@ class Game{
                         for (var i = 0; i < n; i++) {
                             var p = new Vector2((b.Max.x+(2*32)) + ((i*2)*32),  //y) ;
                                                         y + ((i*1)*32)) ;
-                            var d = new Alien(p, t);
-                            if(t==1){
+                            var d = new Alien(p, t, m);
+                            if(m==1){
                                 d.targetPos = new Vector2(b.Min.x-100, p.y);
                             }
 
@@ -182,6 +197,7 @@ class Game{
                     if(this.ufoTimer < 0 ){
                         //regular alien
                         var t = 1;//Util.RndI(0,2);   
+                        var m = Util.RndI(0,2); 
                         var n = Util.RndI(3,6);                   
                         var y = Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
 
@@ -190,7 +206,7 @@ class Game{
                         for (var i = 0; i < n; i++) {
                             var p = new Vector2((b.Max.x+(2*32)) + ((i*2)*32),  //y) ;
                                                         y + ((i*1)*32)) ;
-                            var d = new Alien(p, t);
+                            var d = new Alien(p, t, m);
                             d.targetPos = new Vector2(b.Min.x-100, p.y);
 
                             d.target = this.player;
@@ -223,8 +239,8 @@ class Game{
                         [0,[2,[-48,16,-16,16,-16,48,-48,48]]],
                         [0,[3,[-16,-48,16,-48,16,-16,-16,-16]]],
                         [0,[3,[-16,16,16,16,16,48,-16,48]]],
-                        [0,[1,[-16,-80,16,-80,16,-48,-16,-48],5,[-7,-70,6,-70,6,-58,-7,-58]]],
-                        [0,[4,[-16,48,16,48,16,80,-16,80],5,[-7,58,6,58,6,70,-7,70]]],
+                        [1,[1,[-16,-80,16,-80,16,-48,-16,-48],5,[-7,-70,6,-70,6,-58,-7,-58]]],
+                        [2,[4,[-16,48,16,48,16,80,-16,80],5,[-7,58,6,58,6,70,-7,70]]],
                         [0,[3,[-48,48,-16,48,-16,80]]],
                         [0,[0,[-16,-80,-16,-48,-48,-48]]]
                     ]);

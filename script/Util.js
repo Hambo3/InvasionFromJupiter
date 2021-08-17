@@ -126,6 +126,10 @@ var Util = {
     AbsDist: function(p1, p2){
         return Math.abs( p1 - p2);
     },
+    Wave: function(a,w,x,y){
+        //var yp = Wave(20, 0.05, x, y);
+        return a * Math.sin(w * x) + y;
+    },
     Context: function(w, h){
         var canvas = document.createElement('canvas');
         canvas.width = w;

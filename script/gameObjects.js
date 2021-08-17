@@ -1,3 +1,18 @@
+class Color
+{
+    constructor(r=0,g=0,b=0,a=1) { this.r=r;this.g=g;this.b=b;this.a=a; }
+    Copy(c)                      { this.r=c.r;this.g=c.g;this.b=c.b;this.a=c.a; return this; }
+    Clone(s=1)                   { return new Color(this.r*s, this.g*s, this.b*s, this.a*s); }
+    //Add(c)                     { this.r+=c.r;this.g+=c.g;this.b+=c.b;this.a+=c.a; return this; }
+    Subtract(c)                  { this.r-=c.r;this.g-=c.g;this.b-=c.b;this.a-=c.a; return this; }
+    //Multiply(c)                { (c instanceof Color)? (this.r*=c.r,this.g*=c.g,this.b*=c.b,this.a*=c.a) : (this.r*=c,this.g*=c,this.b*=c,this.a*=c); return this; } 
+    SetAlpha(a)                  { this.a=a; return this; } 
+    Lerp(c,p)                    { return c.Clone().Subtract(c.Clone().Subtract(this).Clone(1-p)); }
+    RGBA()                       { return 'rgba('+this.r+','+this.g+','+this.b+','+this.a+')';
+        //RGBA(this.r, this.g, this.b, this.a); 
+    }
+}
+
 class Vector2 
 {
     constructor(x=0, y=0) { this.x = x; this.y = y; }
@@ -196,14 +211,33 @@ class Player extends GameObject {
 
 class Alien extends GameObject {
     
-    constructor(pos, t)
+    constructor(pos, t, m)
     {
         super(pos, C.ASSETS.ENEMY);        
 
         this.width = 32;
         this.height = 32;
-        
-        this.bodies = [
+
+        this.damping = 0.99;
+        this.targetPos;
+        this.target;
+        this.deadly = null;
+
+        this.dpos;
+        this.Set(pos,t,m);
+    }
+    
+    Collider (perp){
+        this.Die();
+    }
+
+    Die(){
+        GAME.ParticleGen(this.pos, 24, "#5f5");
+        super.Die();
+    }
+    
+    Set(p, t, m){
+        var bodies = [
             {
                 bod:[
                     [0,[-10,3,10,3,20,11,-20,11],1,[-10,-4,10,-4,10,3,-10,3],0,[-10,-4,-8,-6,-5,-8,-2,-9,2,-9,5,-8,8,-6,10,-4],2,[-10,-2,-7,-2,-7,1,-10,1],2,[-4,-2,-1,-2,-1,1,-4,1],2,[2,-2,5,-2,5,1,2,1],2,[8,-2,10,-2,10,1,8,1]],
@@ -229,39 +263,26 @@ class Alien extends GameObject {
                 sz:0.8
             }
         ];
-        this.etype = t;
-        this.body = this.bodies[t].bod;
-        this.col = this.bodies[t].col;
-        this.anim = this.bodies[t].anim 
-                    ? new Anim(this.bodies[t].anim.a, this.bodies[t].anim.b) 
+        this.mtype = m;
+
+        this.body = bodies[t].bod;
+        this.col = bodies[t].col;
+        this.anim = bodies[t].anim 
+                    ? new Anim(bodies[t].anim.a, bodies[t].anim.b) 
                     : null;
-        this.hit = Util.HitBox(this.bodies[t].hit);        
-        this.shotTimer = this.bodies[t].shot;
-        this.speed = this.bodies[t].sp;
-        this.size = this.bodies[t].sz;
-
-        this.damping = 0.99;
-        this.targetPos;
-        this.target;
-        this.deadly = null;
-
-        this.dpos = pos;
+        this.hit = Util.HitBox(bodies[t].hit);        
+        this.shotTimer = bodies[t].shot;
+        this.speed = bodies[t].sp;
+        this.size = bodies[t].sz;
+        this.dpos = p;
+        this.pos = p;
         this.enabled = 1;
     }
-    
-    Collider (perp){
-        this.Die();
-    }
 
-    Die(){
-        GAME.ParticleGen(this.pos, 24, "#5f5");
-        super.Die();
-    }
-    
     Update(dt){
-        if(this.etype == 0)
+        if(this.mtype == 0)
         {
-            if(this.target){           
+            if(this.target){    //chase target       
 
                 var accel = new Vector2();
                 accel.Copy(this.target.pos).Subtract(this.pos);
@@ -272,7 +293,7 @@ class Alien extends GameObject {
             } 
             super.Update(dt);
         }
-        else if(this.etype == 1)
+        else if(this.mtype == 1) //chase point
         {
             if(this.targetPos){
 
@@ -281,9 +302,7 @@ class Alien extends GameObject {
                 {
                     this.enabled = 0;
                 }
-    
-                //shoot
-    
+  
                 var accel = new Vector2();
                 accel.Copy(this.targetPos).Subtract(this.dpos);
     
@@ -294,7 +313,8 @@ class Alien extends GameObject {
                 // apply physics
                 this.velocity.Multiply(this.damping);
                 
-                var p = this.Wave(4, 0.01, this.dpos.x, this.dpos.y);
+                //re calculate the real y
+                var p = Util.Wave(4, 0.01, this.dpos.x, this.dpos.y);
                 this.pos.x = this.dpos.x;
                 this.pos.y=p;
             }
@@ -330,12 +350,8 @@ class Alien extends GameObject {
         if(this.anim){
             this.motion=this.anim.Next(this.motion);
         }
-
-    }
-    //var yp = Wave(20, 0.05, x, y);
-    Wave(a,w,x,y){
-        return a * Math.sin(w * x) + y;
-    }
+    }   
+    
 }
 
 class BossPanel extends GameObject {
@@ -398,14 +414,19 @@ class BossPanel extends GameObject {
 
         var p = basePos.Add(d.Multiply(1));
         if(s){
-            s.Set(p, d );
+            if(this.func == 1){
+                s.Set(p, d );
+            }
+            else{
+                s.Set(p, 0, 0 );
+            }            
         }
         else{
             if(this.func == 1){
                 s = new Bullet(p, C.ASSETS.EMYSHOT, 128, d );
             }
             else{
-                s = new Alien1(p);
+                s = new Alien(p, 0, 0);
                 s.target = this.parent.target;
             }
 
