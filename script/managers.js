@@ -94,8 +94,8 @@ class Game{
     }
 
     ParticleGen(pos, n, col)
-    {
-        for (var i = 0; i < n; i++) {
+    {        
+        for (var i = 0; i < n*4; i++) {
             var b = this.particles.Is(0);
 
             if(!b){
@@ -110,7 +110,8 @@ class Game{
             b.op = 1;
             b.col = [col];
             b.rgb = Util.ToRGB(col);
-            var s = 8*(i%3);
+            //var s = 8*(i%3);
+            var s = 8*n;
             b.speed = Util.RndI(s,s+4);
             b.dir = new Vector2(Util.Rnd(2)-1, Util.Rnd(2)-1);
         }
@@ -127,6 +128,33 @@ class Game{
             else{
                 this.gameObjects.Add(
                     new obj(pos, type, a ));
+            }
+        }
+        return t;
+    }
+
+    AlienGen(type, t, m, n, pos){
+        if(t < 0 )
+        {
+            t = Util.Rnd(2)+2;
+            var b = MAP.ScreenBounds();
+            n = n || Util.RndI(3,6);
+            var y = pos ? pos.y : Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
+
+            //this is not pooling??            
+            for (var i = 0; i < n; i++) {
+                var x = pos ? pos.x : (b.Max.x+(2*32)) + ((i*2)*32);
+                var p = new Vector2(x, y);
+                                            //y + ((i*1)*32)) ;
+                var d = this.gameObjects.Is(C.ASSETS.ENEMY);
+                d = new Alien(p, type, m);  //just replace if exists
+
+                if(m==1){
+                    d.targetPos = new Vector2(b.Min.x-100, p.y);
+                }
+
+                d.target = this.player;
+                this.gameObjects.Add(d);
             }
         }
         return t;
@@ -157,30 +185,7 @@ class Game{
                 this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), 32);
 
                 if(!this.player.auto){
-                    this.ufoTimer-=dt;
-                    if(this.ufoTimer < 0 ){
-
-                        //regular alien
-                        var t = Util.RndI(0,2);   
-                        var m = Util.RndI(0,2);
-                        var n = Util.RndI(3,6);                   
-                        var y = Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
-
-                        //this is not pooling??
-                        
-                        for (var i = 0; i < n; i++) {
-                            var p = new Vector2((b.Max.x+(2*32)) + ((i*2)*32),  //y) ;
-                                                        y + ((i*1)*32)) ;
-                            var d = new Alien(p, t, m);
-                            if(m==1){
-                                d.targetPos = new Vector2(b.Min.x-100, p.y);
-                            }
-
-                            d.target = this.player;
-                            this.gameObjects.Add(d);
-                        }    
-                        this.ufoTimer = Util.Rnd(2)+2;
-                    }
+                   this.ufoTimer=this.AlienGen(Util.RndI(0,2), this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(3,6));
                 }                
             }  
             
@@ -193,27 +198,7 @@ class Game{
         if(this.level == 1){
             if(this.transition==0){
                 if(!this.player.auto){
-                    this.ufoTimer-=dt;
-                    if(this.ufoTimer < 0 ){
-                        //regular alien
-                        var t = 1;//Util.RndI(0,2);   
-                        var m = Util.RndI(0,2); 
-                        var n = Util.RndI(3,6);                   
-                        var y = Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
-
-                        //this is not pooling??
-                        
-                        for (var i = 0; i < n; i++) {
-                            var p = new Vector2((b.Max.x+(2*32)) + ((i*2)*32),  //y) ;
-                                                        y + ((i*1)*32)) ;
-                            var d = new Alien(p, t, m);
-                            d.targetPos = new Vector2(b.Min.x-100, p.y);
-
-                            d.target = this.player;
-                            this.gameObjects.Add(d);
-                        }    
-                        this.ufoTimer = Util.Rnd(2)+2;
-                    }
+                   this.ufoTimer=this.AlienGen(1, this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(3,6));
                 }
             }
             else{

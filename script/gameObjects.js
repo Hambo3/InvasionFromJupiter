@@ -3,13 +3,10 @@ class Color
     constructor(r=0,g=0,b=0,a=1) { this.r=r;this.g=g;this.b=b;this.a=a; }
     Copy(c)                      { this.r=c.r;this.g=c.g;this.b=c.b;this.a=c.a; return this; }
     Clone(s=1)                   { return new Color(this.r*s, this.g*s, this.b*s, this.a*s); }
-    //Add(c)                     { this.r+=c.r;this.g+=c.g;this.b+=c.b;this.a+=c.a; return this; }
     Subtract(c)                  { this.r-=c.r;this.g-=c.g;this.b-=c.b;this.a-=c.a; return this; }
-    //Multiply(c)                { (c instanceof Color)? (this.r*=c.r,this.g*=c.g,this.b*=c.b,this.a*=c.a) : (this.r*=c,this.g*=c,this.b*=c,this.a*=c); return this; } 
     SetAlpha(a)                  { this.a=a; return this; } 
     Lerp(c,p)                    { return c.Clone().Subtract(c.Clone().Subtract(this).Clone(1-p)); }
     RGBA()                       { return 'rgba('+this.r+','+this.g+','+this.b+','+this.a+')';
-        //RGBA(this.r, this.g, this.b, this.a); 
     }
 }
 
@@ -21,18 +18,9 @@ class Vector2
 	Add(v)                { (v instanceof Vector2)? (this.x += v.x, this.y += v.y) : (this.x += v, this.y += v); return this;  }
 	Subtract(v)           { (this.x -= v.x, this.y -= v.y) ; return this;  }
 	Multiply(v)           { (v instanceof Vector2)? (this.x *= v.x, this.y *= v.y) : (this.x *= v, this.y *= v); return this;  }
-	Set(x, y)             { this.x = x; this.y = y; return this;  }
-    AddXY(x, y)           { this.x += x; this.y += y; return this;  }
     Normalize(scale=1)    { let l = this.Length();  return l > 0 ? this.Multiply(scale/l) : this.Set(scale,y=0);  }
     ClampLength(length)   { let l = this.Length(); return l > length ? this.Multiply(length/l) : this; }
-    Rotate(a)             { let c=Math.cos(a);let s=Math.sin(a);return this.Set(this.x*c - this.y*s,this.x*s - this.y*c); }
-    Round()               { this.x = Math.round(this.x); this.y = Math.round(this.y); return this; }
     Length()              { return Math.hypot(this.x, this.y ); }
-    Distance(v)           { return Math.hypot(this.x - v.x, this.y - v.y ); }
-    Angle()               { return Math.atan2(this.y, this.x); };
-    Rotation()            { return (Math.abs(this.x)>Math.abs(this.y))?(this.x>0?2:0):(this.y>0?1:3); }   
-    Lerp(v,p)             { return this.Add(v.Clone().Subtract(this).Multiply(p)); }
-    DotProduct(v)         { return this.x*v.x+this.y*v.y; }
 }
 
 class Anim{
@@ -134,7 +122,7 @@ class Player extends GameObject {
     
     Die(){
         if(!this.auto){
-            GAME.ParticleGen(this.pos, 12, "#fff");
+            GAME.ParticleGen(this.pos, 3, "#fff");
             GAME.PlayerDie(this);
         }
     }
@@ -232,7 +220,7 @@ class Alien extends GameObject {
     }
 
     Die(){
-        GAME.ParticleGen(this.pos, 24, "#5f5");
+        GAME.ParticleGen(this.pos, 2, "#5f5");
         super.Die();
     }
     
@@ -379,8 +367,8 @@ class BossPanel extends GameObject {
     }
 
     Die(){
-        if(--this.strength == 0){            
-            GAME.ParticleGen(this.pos, 16, this.col[0]);
+        if(--this.strength == 0){
+            GAME.ParticleGen(this.pos, 3, this.col[0]);
             super.Die();
         }
     }
@@ -409,7 +397,7 @@ class BossPanel extends GameObject {
         var basePos = this.pos.Clone();
         var os = Util.BodyCenter(this.body[0][1]);
         basePos.Add(os);
-        d.Copy(this.parent.target.pos).Subtract(basePos);    
+        d.Copy(this.parent.target.pos).Subtract(basePos);
         d.Normalize(1);
 
         var p = basePos.Add(d.Multiply(1));
@@ -419,18 +407,16 @@ class BossPanel extends GameObject {
             }
             else{
                 s.Set(p, 0, 0 );
-            }            
+            }
         }
         else{
             if(this.func == 1){
                 s = new Bullet(p, C.ASSETS.EMYSHOT, 128, d );
+                GAME.gameObjects.Add(s);
             }
             else{
-                s = new Alien(p, 0, 0);
-                s.target = this.parent.target;
+                GAME.AlienGen(0, -1, 0, 1,p);
             }
-
-            GAME.gameObjects.Add(s);
         }
     }
 }
@@ -662,7 +648,7 @@ class Bullet extends Shot{
 
     Collider (perp){
         perp.Die();
-        GAME.ParticleGen(this.pos, 5, "#28f");        
+        GAME.ParticleGen(this.pos, 2, "#28f");        
         super.Die();
     }
 
@@ -692,7 +678,7 @@ class Lazer extends Shot{
 
     Collider (perp){
         perp.Die();
-        GAME.ParticleGen(this.pos, 5, "#28f");
+        GAME.ParticleGen(this.pos, 1, "#28f");
         super.Die();
     }
 
