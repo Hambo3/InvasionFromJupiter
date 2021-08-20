@@ -117,12 +117,12 @@ class Player extends GameObject {
         this.height = 16*this.size;
         this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY, C.ASSETS.BOSSPART];
         this.hit = Util.HitBox([-15,-7,15,-2,12,1,-16,2]);
-        this.enabled = 1;      
+        this.enabled = 1; 
     }
     
     Die(){
         if(!this.auto){
-            GAME.ParticleGen(this.pos, 3, "#fff");
+            GAME.ParticleGen(this.pos, 3, this.col, 3);
             GAME.PlayerDie(this);
         }
     }
@@ -135,6 +135,7 @@ class Player extends GameObject {
     }
 
     Update(dt){
+
         var d = {
             up:Input.Up(),
             down:Input.Down(),
@@ -220,7 +221,7 @@ class Alien extends GameObject {
     }
 
     Die(){
-        GAME.ParticleGen(this.pos, 2, "#5f5");
+        GAME.ParticleGen(this.pos, 2, this.col, 4);
         super.Die();
     }
     
@@ -268,15 +269,20 @@ class Alien extends GameObject {
     }
 
     Update(dt){
+        var b = MAP.ScreenBounds();
         if(this.mtype == 0)
         {
             if(this.target){    //chase target       
 
-                var accel = new Vector2();
-                accel.Copy(this.target.pos).Subtract(this.pos);
-    
-                accel.Normalize(dt).Multiply(this.speed);
-    
+                if(this.target.auto > 0)
+                {
+                    this.targetPos = new Vector2(b.Min.x - 64, this.pos.y);
+                    this.mtype = 1;
+                    this.shotTimer = 0;
+                }
+
+                var accel = this.target.pos.Clone().Subtract(this.pos);    
+                accel.Normalize(dt).Multiply(this.speed);    
                 this.velocity.Add(accel);
             } 
             super.Update(dt);
@@ -284,16 +290,12 @@ class Alien extends GameObject {
         else if(this.mtype == 1) //chase point
         {
             if(this.targetPos){
-
-                var b = MAP.ScreenBounds();
                 if((this.pos.x + this.width) < b.Min.x)
                 {
                     this.enabled = 0;
                 }
   
-                var accel = new Vector2();
-                accel.Copy(this.targetPos).Subtract(this.dpos);
-    
+                var accel = this.targetPos.Clone().Subtract(this.dpos);    
                 accel.Normalize(dt).Multiply(this.speed);
                 this.velocity.Add(accel);
     
@@ -368,7 +370,7 @@ class BossPanel extends GameObject {
 
     Die(){
         if(--this.strength == 0){
-            GAME.ParticleGen(this.pos, 3, this.col[0]);
+            GAME.ParticleGen(this.pos, 3, this.col);
             super.Die();
         }
     }
@@ -648,7 +650,7 @@ class Bullet extends Shot{
 
     Collider (perp){
         perp.Die();
-        GAME.ParticleGen(this.pos, 2, "#28f");        
+        GAME.ParticleGen(this.pos, 2, this.col);        
         super.Die();
     }
 
@@ -664,7 +666,7 @@ class Lazer extends Shot{
 
     constructor(pos, type ){
         super(pos, type, 128);
-        this.col = ["#317179","#4ed7e7"];
+        this.col = ["#377","#4dc"];
 
         this.width = 8;
         this.height = 4;
@@ -678,7 +680,7 @@ class Lazer extends Shot{
 
     Collider (perp){
         perp.Die();
-        GAME.ParticleGen(this.pos, 1, "#28f");
+        GAME.ParticleGen(this.pos, 1, this.col);
         super.Die();
     }
 
@@ -724,8 +726,6 @@ class Particle extends GameObject{
         super(pos, 0);
         this.dir;
         this.gravity = gravity;
-        //this.col = [col];
-        //this.rgb = Util.ToRGB(col);
         this.op = 1;
         this.enabled = 1;
     }

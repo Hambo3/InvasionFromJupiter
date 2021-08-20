@@ -64,7 +64,6 @@ class Game{
         this.timer2 = 0;
         this.timer3 = 0;
         this.ufoTimer = 1;
-
         this.boss = null;
         this.opacity = 0.2;
         this.Init(0);        
@@ -93,26 +92,29 @@ class Game{
         }
     }
 
-    ParticleGen(pos, n, col)
+    ParticleGen(pos, n, cols, sz)
     {        
+        var s = sz || 2;
+        var ln = cols.length;
         for (var i = 0; i < n*4; i++) {
             var b = this.particles.Is(0);
 
             if(!b){
-                b = new Particle(pos.Clone(), 0, col);
+                b = new Particle(pos.Clone(), 0);
                 this.particles.Add(b);
             }
+            var l = Util.RndI(0,ln);
             b.pos = pos.Clone();
             b.body = [
-                [0,[-2,2, -2,-2, 2,-2, 2,2]]
+                [l,[-s,s, -s,-s, s,-s, s,s]]
             ];
             b.enabled = 1;
             b.op = 1;
-            b.col = [col];
-            b.rgb = Util.ToRGB(col);
+            b.col = cols;
+            b.rgb = Util.ToRGB(cols[l]);
             //var s = 8*(i%3);
-            var s = 8*n;
-            b.speed = Util.RndI(s,s+4);
+            var sp = 4 + (parseInt(i/4)*4);
+            b.speed = Util.RndI(sp, sp+4);
             b.dir = new Vector2(Util.Rnd(2)-1, Util.Rnd(2)-1);
         }
     }
@@ -185,7 +187,7 @@ class Game{
                 this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), 32);
 
                 if(!this.player.auto){
-                   this.ufoTimer=this.AlienGen(Util.RndI(0,2), this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(3,6));
+                   this.ufoTimer=this.AlienGen(Util.RndI(0,2), this.ufoTimer-dt, Util.RndI(0,3), Util.RndI(3,6));
                 }                
             }  
             
@@ -198,7 +200,7 @@ class Game{
         if(this.level == 1){
             if(this.transition==0){
                 if(!this.player.auto){
-                   this.ufoTimer=this.AlienGen(1, this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(3,6));
+                   this.ufoTimer=this.AlienGen(1, this.ufoTimer-dt, Util.RndI(0,3), Util.RndI(3,6));
                 }
             }
             else{
