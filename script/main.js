@@ -33,7 +33,7 @@ var AUDIO;
 var MUSIC;
 
 var DEBUG;
-//var TEXT;
+
 var map={
 	size:{
 		tile:{width:32, height:32},

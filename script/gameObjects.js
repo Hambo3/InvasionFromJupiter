@@ -1,10 +1,10 @@
 class Color
 {
     constructor(r=0,g=0,b=0,a=1) { this.r=r;this.g=g;this.b=b;this.a=a; }
-    Copy(c)                      { this.r=c.r;this.g=c.g;this.b=c.b;this.a=c.a; return this; }
+    //Copy(c)                      { this.r=c.r;this.g=c.g;this.b=c.b;this.a=c.a; return this; }
     Clone(s=1)                   { return new Color(this.r*s, this.g*s, this.b*s, this.a*s); }
     Subtract(c)                  { this.r-=c.r;this.g-=c.g;this.b-=c.b;this.a-=c.a; return this; }
-    SetAlpha(a)                  { this.a=a; return this; } 
+    //SetAlpha(a)                  { this.a=a; return this; } 
     Lerp(c,p)                    { return c.Clone().Subtract(c.Clone().Subtract(this).Clone(1-p)); }
     RGBA()                       { return 'rgba('+this.r+','+this.g+','+this.b+','+this.a+')';
     }
@@ -210,6 +210,7 @@ class Alien extends GameObject {
         this.damping = 0.99;
         this.targetPos;
         this.target;
+        this.chase=0;
         this.deadly = null;
 
         this.dpos;
@@ -237,7 +238,7 @@ class Alien extends GameObject {
                 hit:[-17,10,-10,4,-10,-4,-3,-8,3,-8,10,-4,10,4,17,10],
                 anim:{a:8,b:3},
                 shot:0,
-                sp:4,
+                sp:3,
                 sz:1
             },
             {
@@ -248,7 +249,7 @@ class Alien extends GameObject {
                 hit:[-9,-5,9,-5,18,1,13,4,-13,4,-18,1],
                 anim:null,
                 shot:1,
-                sp:4,
+                sp:3,
                 sz:0.8
             }
         ];
@@ -274,7 +275,7 @@ class Alien extends GameObject {
         {
             if(this.target){    //chase target       
 
-                if(this.target.auto > 0)
+                if(this.chase < 0 || this.target.auto > 0)
                 {
                     this.targetPos = new Vector2(b.Min.x - 64, this.pos.y);
                     this.mtype = 1;
@@ -284,10 +285,11 @@ class Alien extends GameObject {
                 var accel = this.target.pos.Clone().Subtract(this.pos);    
                 accel.Normalize(dt).Multiply(this.speed);    
                 this.velocity.Add(accel);
+                this.chase-=dt;
             } 
             super.Update(dt);
         }
-        else if(this.mtype == 1) //chase point
+        else if(this.mtype == 1 || this.mtype == 2) //chase point
         {
             if(this.targetPos){
                 if((this.pos.x + this.width) < b.Min.x)
@@ -303,16 +305,20 @@ class Alien extends GameObject {
                 // apply physics
                 this.velocity.Multiply(this.damping);
                 
-                //re calculate the real y
-                var p = Util.Wave(4, 0.01, this.dpos.x, this.dpos.y);
                 this.pos.x = this.dpos.x;
-                this.pos.y=p;
+                this.pos.y = this.dpos.y;
+
+                if(this.mtype == 2){
+                    //re calculate the real y
+                    var p = Util.Wave(4, 0.01, this.dpos.x, this.dpos.y);
+                    this.pos.y=p;
+                }
             }
         }
 
 
         if(this.shotTimer > 0){
-            if(this.target)
+            if(this.target && this.target.auto <= 0)
             {
                 this.shotTimer -= dt;
                 if(this.shotTimer <= 0 ){
@@ -358,7 +364,7 @@ class BossPanel extends GameObject {
         this.parent = parent;
         this.deadly = null;
         this.hit = Util.HitBox(this.body[0][1]);//1st panel must define hitbox also
-        this.strength = 10;
+        this.strength = 3;
         this.enabled = 1;
         this.shotTimer = 1;
         this.func = func;
@@ -371,6 +377,7 @@ class BossPanel extends GameObject {
     Die(){
         if(--this.strength == 0){
             GAME.ParticleGen(this.pos, 3, this.col);
+            this.parent.LoseLife();
             super.Die();
         }
     }
@@ -447,6 +454,7 @@ class Boss extends GameObject {
         this.enabled = 1;
         this.shotTimer = 1;
         this.Init(template);
+        this.lives = template.length;
     }
     
     Init(template){
@@ -463,6 +471,13 @@ class Boss extends GameObject {
 
     Die(){
         super.Die();
+    }
+
+    LoseLife(){
+        this.lives--;
+        if(this.lives == 0){
+            this.Die();
+        }
     }
 
     Update(dt){
@@ -514,7 +529,7 @@ class Block extends Scrollable{
         super(pos, type, spd ); 
 
         this.cols = [
-                ["#555","#666","#777","#888","#000","#fff"],
+                ["#555","#666","#777","#888","#000","#fff","#f00"],
                 ["#111"]
             ];
         this.col = type == C.ASSETS.SHACK ? this.cols[0] : this.cols[1];
@@ -541,7 +556,11 @@ class Block extends Scrollable{
             for (var i = 0; i < r; i++) {
                 var x = -hw+16;
                 for (var j = 0; j < c; j++) {
-                    this.body[0].push(Util.RndI(4,6),[x-w,y-w, x+w,y-w, x+w,y+w, x-w,y+w]);
+                    var cc = Util.RndI(4,6);
+                    if(Util.OneIn(500)){
+                        cc = 6;
+                    }
+                    this.body[0].push(cc,[x-w,y-w, x+w,y-w, x+w,y+w, x-w,y+w]);
                     x+=32;
                 }
                 y-=32;
@@ -722,10 +741,9 @@ class Lazer extends Shot{
 
 class Particle extends GameObject{
 
-    constructor(pos, gravity){
+    constructor(pos){
         super(pos, 0);
         this.dir;
-        this.gravity = gravity;
         this.op = 1;
         this.enabled = 1;
     }
@@ -733,12 +751,15 @@ class Particle extends GameObject{
     Update(dt){
         var acc = this.dir.Clone().Normalize(dt).Multiply(this.speed);
         this.velocity.Add(acc);
-        this.op-=0.01;
-        this.col = [Util.ToCOL(this.rgb, this.op)];
-        super.Update(dt);
-        if(this.op<0){
-            this.enabled = 0;
+        if(this.op>0){
+            this.op-=0.01;
+            this.col = [Util.ToCOL(this.rgb, this.op)];
+            if(this.op<=0){
+                this.enabled = 0;
+            }             
         }
+       
+        super.Update(dt);
     }
 }
 

@@ -4,7 +4,7 @@ class Title{
     {
         this.mode = 1;
         this.col = new Color(100,100,100,0);
-        this.toCol = new Color(250,10,10,1);
+        this.cols = [new Color(255,0,0,1),new Color(255,255,0,1)];
         this.titleTimer = 1;
         this.titleRate = 0;
     }
@@ -14,27 +14,39 @@ class Title{
 
     Update(dt)
     {
-        if(Input.IsSingle('KeyS') ) {
+        if(this.titleRate>=1 && Input.Fire1() ) {
             this.mode = 2;
         }
 
-        this.titleTimer -= dt;
+        if(this.titleRate<1){
+            this.titleTimer -= dt;
 
-        if(this.titleTimer <= 0){
-            this.titleRate += 0.01;
-            if(this.titleRate < 1){
-                this.titleTimer = 0.10;
-            }          
+            if(this.titleTimer <= 0){
+                this.titleRate += 0.01;
+                if(this.titleRate < 1){
+                    this.titleTimer = 0.02;
+                }
+            }
         }
     }
 
     Render()
     {
-        var c = this.col.Clone().Lerp(this.toCol, this.titleRate).RGBA(); 
         SFX.Box(0,0,SFX.bounds.w, SFX.bounds.h,"#888");
-        SFX.Text("INVADERS",100,100,4, 1, c);
-        SFX.Text("FROM",100,140,4, 1, c);
-        SFX.Text("JUPITER",100,180,4, 1, c);
+        for (let i = 0; i < 2; i++) {
+
+            var c = this.col.Clone().Lerp(this.cols[i], this.titleRate).RGBA(); 
+            SFX.Text("JUPITERS",300-i,100-i,6, 1, c);
+            SFX.Text("INVASION",310-i,144-i,6, 1, c);
+            SFX.Text("ON BLETCHLEY",320-i,190-i,4, 1, c);
+            SFX.Text("FROM",380-i,224-i,4, 1, c);
+            SFX.Text("SPACE",370-i,260-i,8, 1, c);   
+        }
+
+        if(this.titleRate>=1){
+            SFX.Text("FIRE TO START [K]",320,440,4, 0, this.cols[0]); 
+        }
+
     }
 }
 
@@ -57,9 +69,9 @@ class Game{
         this.levelDistance = TRANS[this.level].d;
         this.transition = TRANS[this.level].t;
  
-        this.Lives = 33;
+        this.Lives = 3;
         this.zoomTransition = 0;
-
+        this.levelSpeed = 24;
         this.timer1 = 0;
         this.timer2 = 0;
         this.timer3 = 0;
@@ -85,7 +97,7 @@ class Game{
 
             do {
                 this.gameObjects.Add(
-                    new Ground(new Vector2(s, b.Max.y), C.ASSETS.GRNDCITY, 32 ));
+                    new Ground(new Vector2(s, b.Max.y), C.ASSETS.GRNDCITY, this.levelSpeed *0.7 ));
                 s+=256;                  
             } while (s<b.Max.x);
 
@@ -100,19 +112,19 @@ class Game{
             var b = this.particles.Is(0);
 
             if(!b){
-                b = new Particle(pos.Clone(), 0);
+                b = new Particle(pos.Clone());
                 this.particles.Add(b);
             }
             var l = Util.RndI(0,ln);
             b.pos = pos.Clone();
             b.body = [
-                [l,[-s,s, -s,-s, s,-s, s,s]]
+                [0,[-s,s, -s,-s, s,-s, s,s]]
             ];
             b.enabled = 1;
             b.op = 1;
-            b.col = cols;
+            //b.col = cols;
             b.rgb = Util.ToRGB(cols[l]);
-            //var s = 8*(i%3);
+
             var sp = 4 + (parseInt(i/4)*4);
             b.speed = Util.RndI(sp, sp+4);
             b.dir = new Vector2(Util.Rnd(2)-1, Util.Rnd(2)-1);
@@ -135,7 +147,7 @@ class Game{
         return t;
     }
 
-    AlienGen(type, t, m, n, pos){
+    AlienGen(type, t, m, w, n, pos){
         if(t < 0 )
         {
             t = Util.Rnd(2)+2;
@@ -147,15 +159,18 @@ class Game{
             for (var i = 0; i < n; i++) {
                 var x = pos ? pos.x : (b.Max.x+(2*32)) + ((i*2)*32);
                 var p = new Vector2(x, y);
-                                            //y + ((i*1)*32)) ;
+                if(w==1){
+                    p.y += (i*1)*32;
+                }
                 var d = this.gameObjects.Is(C.ASSETS.ENEMY);
                 d = new Alien(p, type, m);  //just replace if exists
 
-                if(m==1){
+                if(m==1 || m==2){
                     d.targetPos = new Vector2(b.Min.x-100, p.y);
                 }
 
                 d.target = this.player;
+                d.chase = Util.Rnd(4)+4;
                 this.gameObjects.Add(d);
             }
         }
@@ -170,7 +185,7 @@ class Game{
         }
         else{
             this.levelDistance--;
-            if(this.levelDistance == 0)
+            if(this.levelDistance <= 0)
             {
                 this.level++;
                 this.levelDistance = TRANS[this.level].d;
@@ -183,15 +198,15 @@ class Game{
         {
 
             if(this.transition==0){
-                this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 1, new Vector2(b.Max.x + 100, b.Max.y-16), 48);
-                this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), 32);
+                this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 1, new Vector2(b.Max.x + 100, b.Max.y-16), this.levelSpeed);
+                this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), this.levelSpeed*0.7);
 
                 if(!this.player.auto){
-                   this.ufoTimer=this.AlienGen(Util.RndI(0,2), this.ufoTimer-dt, Util.RndI(0,3), Util.RndI(3,6));
+                   this.ufoTimer=this.AlienGen(Util.RndI(0,2), this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
                 }                
             }  
             
-            this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), 32);
+            this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), this.levelSpeed*0.7);
         }
         if(this.level > 0)      //its space!
         {
@@ -200,7 +215,7 @@ class Game{
         if(this.level == 1){
             if(this.transition==0){
                 if(!this.player.auto){
-                   this.ufoTimer=this.AlienGen(1, this.ufoTimer-dt, Util.RndI(0,3), Util.RndI(3,6));
+                   this.ufoTimer=this.AlienGen(1, this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
                 }
             }
             else{
@@ -235,6 +250,12 @@ class Game{
                     this.boss.targetPos = new Vector2(b.Max.x + (2*32), 
                                             b.Min.y + ((b.Max.y - b.Min.y)/2) );
                     this.gameObjects.Add(this.boss);
+                }
+                else{
+                    if(!this.boss.enabled){
+                        this.levelDistance = 0;
+                        this.boss = null;
+                    }
                 }
             //}
 
@@ -307,7 +328,7 @@ class Game{
 
         MAP.PreRender("#000");
         if(this.level == 0){            
-            GFX.Image(GFX.sky.canvas, new Vector2(0, Util.Remap(0, 1000, b.Max.y-b.Min.y,0, this.levelDistance)), 
+            GFX.Image(GFX.sky.canvas, new Vector2(0, Util.Remap(0, 3000, b.Max.y-b.Min.y,0, this.levelDistance)), 
                 {x:b.Max.x-b.Min.x,y:b.Max.y-b.Min.y}, {x:0,y:0}, {x:64,y:64});
         }
 
@@ -321,6 +342,11 @@ class Game{
         }
 
         MAP.PostRender();
+        //scores
+        SFX.Box(0,0,SFX.bounds.w, 32,"rgba(100,100,100,0.2)");
+        SFX.Text("1UP: 00000",40, 4, 3, 0, "#fff");
+        SFX.Text("HIGH: 00000",380, 4, 3, 0, "#fff");
+
         if(this.transition){
             var d = 800;//b.Max.x - b.Min.x
             var txt = TRANS[this.level];
