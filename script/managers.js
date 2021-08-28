@@ -78,32 +78,39 @@ class Game{
         this.ufoTimer = 1;
         this.boss = null;
         this.opacity = 0.2;
-        this.Init(0);        
+        this.Init(0);  
     }
 
     PlayerDie(p){
-        this.Lives --;
-        if(this.Lives==0){
-            this.mode = 4;
-        }
+        // this.Lives --;
+        // if(this.Lives==0){
+        //     this.mode = 4;
+        // }
         p.pos = new Vector2(-2*32,24*32);
         p.auto = new Vector2(8*32,24*32);
+
+        this.ready = 0;
+        this.player.enabled = 0;
+        this.levelDistance += 350;
     }
     Init(l)
     {
         if(l==0){
-            var b = MAP.ScreenBounds();            
+            var b = MAP.ScreenBounds();
             var s = b.Min.x;
 
             do {
                 this.gameObjects.Add(
                     new Ground(new Vector2(s, b.Max.y), C.ASSETS.GRNDCITY, this.levelSpeed *0.7 ));
-                s+=256;                  
+                s+=256;
             } while (s<b.Max.x);
 
         }
     }
 
+    CanShoot(){
+        return this.transition == 0;
+    }
     ParticleGen(pos, n, cols, sz)
     {        
         var s = sz || 2;
@@ -122,7 +129,6 @@ class Game{
             ];
             b.enabled = 1;
             b.op = 1;
-            //b.col = cols;
             b.rgb = Util.ToRGB(cols[l]);
 
             var sp = 4 + (parseInt(i/4)*4);
@@ -140,30 +146,30 @@ class Game{
                 d.Set( pos );
             }
             else{
-                this.gameObjects.Add(
-                    new obj(pos, type, a ));
+                this.gameObjects.Add(new obj(pos, type, a ));
             }
         }
         return t;
     }
 
     AlienGen(type, t, m, w, n, pos){
-        if(t < 0 )
+        if(t < 0 && this.levelDistance > 150)
         {
             t = Util.Rnd(2)+2;
             var b = MAP.ScreenBounds();
             n = n || Util.RndI(3,6);
             var y = pos ? pos.y : Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
 
-            //this is not pooling??            
+            //this is not pooling??
             for (var i = 0; i < n; i++) {
                 var x = pos ? pos.x : (b.Max.x+(2*32)) + ((i*2)*32);
                 var p = new Vector2(x, y);
                 if(w==1){
                     p.y += (i*1)*32;
                 }
-                var d = this.gameObjects.Is(C.ASSETS.ENEMY);
-                d = new Alien(p, type, m);  //just replace if exists
+
+                var d = new Alien(p, type, m);
+                this.gameObjects.Add(d);
 
                 if(m==1 || m==2){
                     d.targetPos = new Vector2(b.Min.x-100, p.y);
@@ -171,12 +177,17 @@ class Game{
 
                 d.target = this.player;
                 d.chase = Util.Rnd(4)+4;
-                this.gameObjects.Add(d);
             }
         }
         return t;
     }
 
+    BossGen(boss, b){
+        this.boss = new Boss(new Vector2(b.Max.x + (10*32), 24*32), boss);
+        this.boss.target = this.player;
+        this.boss.targetPos = new Vector2(b.Max.x + (2*32), 24*32 );
+        this.gameObjects.Add(this.boss);
+    }
     Events(dt){
         var b = MAP.ScreenBounds();
 
@@ -191,19 +202,19 @@ class Game{
                 this.levelDistance = TRANS[this.level].d;
                 this.transition= TRANS[this.level].t;
                 this.zoomTransition = TRANS[this.level].z;
-            }            
+            }
         }
 
         if(this.level == 0)
         {
 
             if(this.transition==0){
-                this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 1, new Vector2(b.Max.x + 100, b.Max.y-16), this.levelSpeed);
-                this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 0.5, new Vector2(b.Max.x + 100, b.Max.y-32), this.levelSpeed*0.7);
+                this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 2, new Vector2(b.Max.x + 100, b.Max.y-16), this.levelSpeed);
+                this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 1, new Vector2(b.Max.x + 100, b.Max.y-32), this.levelSpeed*0.7);
 
                 if(!this.player.auto){
                    this.ufoTimer=this.AlienGen(Util.RndI(0,2), this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
-                }                
+                }
             }  
             
             this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), this.levelSpeed*0.7);
@@ -212,7 +223,7 @@ class Game{
         {
             this.timer1 = this.ObjectGen(C.ASSETS.STAR, Star, this.timer1-dt, 0, 0.3, new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), Util.RndI(0,3));
         }
-        if(this.level == 1){
+        if(this.level == 1 || this.level == 3){
             if(this.transition==0){
                 if(!this.player.auto){
                    this.ufoTimer=this.AlienGen(1, this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
@@ -220,6 +231,10 @@ class Game{
             }
             else{
                 this.ufoTimer = 1;
+                if(this.transition==1){
+                    this.gameObjects.Remove([C.ASSETS.ENEMY]);
+                    console.log("Remove");
+                }
             }
         }
 
@@ -228,28 +243,15 @@ class Game{
             {
                 this.zoomTransition = 0;
                 MAP.scale = 1.5;
+                this.gameObjects.Remove([C.ASSETS.ENEMY]);
+                console.log("Remove");
             }
 
             //if(this.transition==1){
                 
                 if(!this.boss){
-                    this.boss = new Boss(new Vector2(b.Max.x + (10*32), b.Min.y + ((b.Max.y - b.Min.y)/2)),
-                    [
-                        [0,[3,[-16,-16,16,-16,16,16,-16,16]]],
-                        [0,[2,[-48,-48,-16,-48,-16,-16,-48,-16]]],
-                        [0,[2,[-48,-16,-16,-16,-16,16,-48,16]]],
-                        [0,[2,[-48,16,-16,16,-16,48,-48,48]]],
-                        [0,[3,[-16,-48,16,-48,16,-16,-16,-16]]],
-                        [0,[3,[-16,16,16,16,16,48,-16,48]]],
-                        [1,[1,[-16,-80,16,-80,16,-48,-16,-48],5,[-7,-70,6,-70,6,-58,-7,-58]]],
-                        [2,[4,[-16,48,16,48,16,80,-16,80],5,[-7,58,6,58,6,70,-7,70]]],
-                        [0,[3,[-48,48,-16,48,-16,80]]],
-                        [0,[0,[-16,-80,-16,-48,-48,-48]]]
-                    ]);
-                    this.boss.target = this.player;
-                    this.boss.targetPos = new Vector2(b.Max.x + (2*32), 
-                                            b.Min.y + ((b.Max.y - b.Min.y)/2) );
-                    this.gameObjects.Add(this.boss);
+                    this.player.auto = new Vector2(8*32,24*32);
+                    this.BossGen(BOSS1, b);
                 }
                 else{
                     if(!this.boss.enabled){
@@ -266,11 +268,39 @@ class Game{
                 MAP.scale = 1;
                 this.zoomTransition = 0;
             }
+
+            if(this.transition==0){
+                this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 2, new Vector2(b.Max.x + 100, b.Max.y-16), this.levelSpeed);
+                this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 1, new Vector2(b.Max.x + 100, b.Max.y-32), this.levelSpeed*0.7);
+
+                if(!this.player.auto){
+                   this.ufoTimer=this.AlienGen(Util.RndI(0,2), this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
+                }
+            }  
+            
+            this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), this.levelSpeed*0.7);
+
+        }
+        if(this.level == 4){
+
         }
         if(this.level == 5){
             if(MAP.scale == MAP.maxScale)
             {
                 this.zoomTransition = 0;
+                this.gameObjects.Remove([C.ASSETS.ENEMY]);
+                console.log("Remove");
+            }
+
+            if(!this.boss){
+                this.player.auto = new Vector2(8*32,24*32);
+                this.BossGen(BOSS2, b);
+            }
+            else{
+                if(!this.boss.enabled){
+                    this.levelDistance = 0;
+                    this.boss = null;
+                }
             }
         }
     }
@@ -285,6 +315,8 @@ class Game{
         DEBUG.Print("GO", this.gameObjects.Count(true));
         DEBUG.Print("P", this.particles.Count(true));
 
+        DEBUG.Print("EM", this.gameObjects.Count(false, [C.ASSETS.ENEMY]));
+
         if(Input.IsDown('KeyX') ) {
             MAP.Zoom(0.01);
             this.offset = MAP.ScrollTo(this.player.pos, this.scrollRate);
@@ -295,6 +327,14 @@ class Game{
         }
         //#endregion DEBUG
         
+        if(!this.player.enabled)
+        {
+            if(this.gameObjects.Count(false, [C.ASSETS.ENEMY]) == 0 )
+            {
+                this.player.enabled = 1;
+            }
+        }
+
         if(this.zoomTransition != 0)
         {
             MAP.Zoom(this.zoomTransition);
@@ -327,7 +367,7 @@ class Game{
         });
 
         MAP.PreRender("#000");
-        if(this.level == 0){            
+        if(this.level == 0){
             GFX.Image(GFX.sky.canvas, new Vector2(0, Util.Remap(0, 3000, b.Max.y-b.Min.y,0, this.levelDistance)), 
                 {x:b.Max.x-b.Min.x,y:b.Max.y-b.Min.y}, {x:0,y:0}, {x:64,y:64});
         }
@@ -346,15 +386,18 @@ class Game{
         SFX.Box(0,0,SFX.bounds.w, 32,"rgba(100,100,100,0.2)");
         SFX.Text("1UP: 00000",40, 4, 3, 0, "#fff");
         SFX.Text("HIGH: 00000",380, 4, 3, 0, "#fff");
+        for (var i = 0; i < this.Lives; i++) {
+            SFX.Sprite(102+(i*20), 27, LIVES, ["#fff"], 1.4);
+        }
 
         if(this.transition){
-            var d = 800;//b.Max.x - b.Min.x
+            var d = 800;
             var txt = TRANS[this.level];
             SFX.Text(txt.title,(d/2)-((txt.title.length*(4*4))/2),200,4,1,"#ff0"); 
             for (var i = 0; i < txt.info.length; i++) {
                 SFX.Text(txt.info[i],(d/2)-((txt.info[i].length*(4*2))/2),
-                240 + (i*16),2,0,"#ff0");            
-            }            
+                240 + (i*16),2,0,"#ff0");
+            }
         }
         //
         //check collisions
@@ -421,7 +464,7 @@ class MapManger{
         this.offset.x = destx;
         this.offset.y = desty;
 
-        return this.offset;        
+        return this.offset;
     }
 
     ScreenBounds(){
@@ -529,7 +572,7 @@ class Render{
             var yp = 0;
             var mx = 0; 
 
-            var chr = str.charAt(i);                     
+            var chr = str.charAt(i);
             if(chr == '+')
             {
                 ys += (size*8);
@@ -540,11 +583,11 @@ class Render{
                 var l = FONT[str.charAt(i)];
 
                 for (var r = 0; r < l.length; r++) 
-                {                
+                {
                     xp = 0;
                     var row = l[r];
                     for (var c = 0; c < row.length; c++) 
-                    {                    
+                    {
                         var szx = (sc && c==row.length-1) ? size*2 : size;
                         var szy = (sc && r==l.length-1) ? size*2 : size;
                         if (row[c]) {
