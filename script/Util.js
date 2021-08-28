@@ -165,7 +165,7 @@ var ObjectPool = function () {
             return null;
         },
         Add: function(obj){
-            list.push(obj);         
+            list.push(obj);
         },
         Get: function(type, not){
             if(type){
@@ -181,15 +181,20 @@ var ObjectPool = function () {
         },
         Count: function(all, type){
             if(type){
-                return (all) ? list.filter(l => type.indexOf(l.type) != -1).length : list.filter(l => l.enabled && type.indexOf(l.type) != -1).length;
+                return (all) ? list.filter(l => type.indexOf(l.type) != -1).length 
+                        : list.filter(l => l.enabled && type.indexOf(l.type) != -1).length;
             }
             else{
                 return (all) ? list.length : list.filter(l => l.enabled).length;
             }
         },
+        Remove: function(type) {
+            var n = list.filter(l => type.indexOf(l.type) == -1);
+            list = n;
+        },
         Clear: function(){
             list = [];
-        }             
+        }
     }
 };
 

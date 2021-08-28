@@ -266,6 +266,7 @@ class Alien extends GameObject {
         this.size = bodies[t].sz;
         this.dpos = p;
         this.pos = p;
+        this.targetPos = null;
         this.enabled = 1;
     }
 
@@ -317,7 +318,7 @@ class Alien extends GameObject {
         }
 
 
-        if(this.shotTimer > 0){
+        if(this.shotTimer > 0 && GAME.CanShoot()){
             if(this.target && this.target.auto <= 0)
             {
                 this.shotTimer -= dt;
@@ -325,15 +326,17 @@ class Alien extends GameObject {
                     var s = GAME.gameObjects.Is( C.ASSETS.EMYSHOT);
 
                     var d = new Vector2();
-                    d.Copy(this.target.pos).Subtract(this.pos);    
+                    d.Copy(this.target.pos).Subtract(this.pos); 
+                    d.x+=Util.RndI(-32,32);
+                    d.y+=Util.RndI(-32,32);
                     d.Normalize(1);
 
                     var p = this.pos.Clone().Add(d.Multiply(16));
                     if(s){
-                        s.Set(p, d );
+                        s.Set(p, d);
                     }
                     else{
-                        s = new Bullet(p, C.ASSETS.EMYSHOT, 128, d );
+                        s = new Bullet(p, C.ASSETS.EMYSHOT, 90, d );
                         GAME.gameObjects.Add(s);
                     }
 
@@ -355,7 +358,7 @@ class BossPanel extends GameObject {
     constructor(pos, body, func, parent)
     {
         super(pos, C.ASSETS.BOSSPART);
-        this.col = ["#ccc","#999","#888","#777","#555","#f00"];
+        this.col = ["#ccc","#999","#f00","#f0f","#555","#f00"];
         this.width = 32;
         this.height = 32;
         this.body = [
@@ -364,6 +367,7 @@ class BossPanel extends GameObject {
         this.parent = parent;
         this.deadly = null;
         this.hit = Util.HitBox(this.body[0][1]);//1st panel must define hitbox also
+        this.center = Util.BodyCenter(this.body[0][1]);
         this.strength = 3;
         this.enabled = 1;
         this.shotTimer = 1;
@@ -376,7 +380,7 @@ class BossPanel extends GameObject {
 
     Die(){
         if(--this.strength == 0){
-            GAME.ParticleGen(this.pos, 3, this.col);
+            GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.col);
             this.parent.LoseLife();
             super.Die();
         }
@@ -404,8 +408,7 @@ class BossPanel extends GameObject {
 
         var d = new Vector2();
         var basePos = this.pos.Clone();
-        var os = Util.BodyCenter(this.body[0][1]);
-        basePos.Add(os);
+        basePos.Add(this.center);
         d.Copy(this.parent.target.pos).Subtract(basePos);
         d.Normalize(1);
 
@@ -434,7 +437,7 @@ class Boss extends GameObject {
     
     constructor(pos, template)
     {
-        super(pos, C.ASSETS.ENEMY);
+        super(pos, C.ASSETS.BOSS);
         this.col = ["#3b0", "#190", "#2A0", "#fb0"];
         this.speed = 2;
         this.damping = 0.99;
@@ -453,16 +456,42 @@ class Boss extends GameObject {
         this.deadly = null;
         this.enabled = 1;
         this.shotTimer = 1;
-        this.Init(template);
-        this.lives = template.length;
+        this.lives = 10;this.Init(template);
     }
     
-    Init(template){
-        for(var i = 0; i < template.length; i++) 
+    Init(t){
+        var parts=0;
+        var x = -(9*32);
+        var y = -(10*32);
+        for(var i = 0; i < t.length; i++) 
         {
-            var p = new BossPanel(this.pos, template[i][1], template[i][0], this);
-            GAME.gameObjects.Add(p);
+            for(var j = 0; j < t[i].length; j++) 
+            {
+                var q = parseInt(t[i][j]);
+                if(q > 0){
+                    var c = BDATA[q][0];
+                    var d = BCELL[ BDATA[q][1] ];
+                    var dd = [];
+                    for(var k = 0; k < d.length; k+=2) {
+                        dd.push(x-d[k], y-d[k+1]);
+                    }
+                    var p = GAME.gameObjects.Is( C.ASSETS.BOSSPART);
+                    if(p){
+                        p = new BossPanel(this.pos, [c,dd], 0, this);
+                    }
+                    else{
+                        p = new BossPanel(this.pos, [c,dd], 0, this);
+                        GAME.gameObjects.Add(p);
+                    }
+                    
+                    parts++;
+                }
+                x+=32;
+            }
+            y+=32;
+            x = -(9*32);
         } 
+        return parts;
     }
 
     Collider (perp){
@@ -470,6 +499,7 @@ class Boss extends GameObject {
     }
 
     Die(){
+        GAME.gameObjects.Remove([C.ASSETS.BOSSPART]);
         super.Die();
     }
 
@@ -652,7 +682,7 @@ class Bullet extends Shot{
 
     constructor(pos, type, spd, dir ){
         super(pos, type, spd);
-        this.col = ["#FF0"];
+        this.col = ["#a61","#e92","#fa3"];
 
         this.width = 4;
         this.height = 4;
@@ -660,9 +690,9 @@ class Bullet extends Shot{
         this.deadly = [C.ASSETS.SHACK, C.ASSETS.PLAYER];
 
         this.body = [
-            [0,[-2,2, -2,-2, 2,-2, 2,2]]
+            [0,[-3,-2,3,-2,3,2,-3,2],0,[-2,-3,2,-3,2,3,-2,3],1,[-2,-2,2,-2,2,2,-2,2],2,[-1,-1,1,-1,1,1,-1,1]]
         ];
-        this.hit = Util.HitBox(this.body[0][1]);
+        this.hit = Util.HitBox(this.body[0][7]);
 
         this.Set(pos, dir);
     }
