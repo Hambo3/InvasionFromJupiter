@@ -82,10 +82,10 @@ class Game{
     }
 
     PlayerDie(p){
-        this.Lives --;
-        if(this.Lives==0){
-            this.mode = 4;
-        }
+        // this.Lives --;
+        // if(this.Lives==0){
+        //     this.mode = 4;
+        // }
         p.pos = new Vector2(-2*32,24*32);
         p.auto = new Vector2(8*32,24*32);
 
@@ -268,6 +268,18 @@ class Game{
                 MAP.scale = 1;
                 this.zoomTransition = 0;
             }
+
+            if(this.transition==0){
+                this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 2, new Vector2(b.Max.x + 100, b.Max.y-16), this.levelSpeed);
+                this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 1, new Vector2(b.Max.x + 100, b.Max.y-32), this.levelSpeed*0.7);
+
+                if(!this.player.auto){
+                   this.ufoTimer=this.AlienGen(Util.RndI(0,2), this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
+                }
+            }  
+            
+            this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), this.levelSpeed*0.7);
+
         }
         if(this.level == 4){
 

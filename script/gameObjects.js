@@ -74,7 +74,7 @@ class GameObject{
     }
 
     Render(x,y){
-        if(this.enabled){
+        if(this.enabled && this.Body().length > 0){
             GFX.Sprite(this.pos.x-x, this.pos.y-y, 
                 this.Body(), this.col, this.size);
         }
@@ -358,7 +358,7 @@ class BossPanel extends GameObject {
     constructor(pos, body, func, parent)
     {
         super(pos, C.ASSETS.BOSSPART);
-        this.col = ["#ccc","#999","#f00","#f0f","#555","#f00"];
+        this.col = ["#ccc","#aaa","#999","#777","#555","#f00"];
         this.width = 32;
         this.height = 32;
         this.body = [
@@ -445,7 +445,7 @@ class Boss extends GameObject {
         this.height = 32;
 
         this.body = [
-            [3,[-16,-16,16,-16,16,16,-16,16]]
+            []
         ];
 
         this.pattern = [];
