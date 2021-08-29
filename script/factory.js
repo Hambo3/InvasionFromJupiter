@@ -26,8 +26,9 @@ var TRANS = [
     {t:500, d:1000, z:0, title:"SPACE",info:["SAVED"]},
     {t:500, d:99900, z:0.001, title:"BOSS",info:["KILL THE BOSS"]},
     {t:500, d:1000, z:-0.001, title:"JUPITER",info:["PROCEDE TO JUPITER"]},
-    {t:500, d:500, z:0, title:"SPACE",info:["SAVED"]},
-    {t:500, d:500, z:0.003, title:"BOSS",info:["KILL THE BOSS"]},
+    {t:500, d:500, z:0, title:"SPACE",info:[]},
+    {t:500, d:99900, z:0.003, title:"BOSS",info:["KILL THE BOSS"]},
+    {t:800, d:3000, z:-0.002, title:"JUPITER IS DESTROYED",info:["YOUR A REAL HERO NOW"]},
 ];
 
 

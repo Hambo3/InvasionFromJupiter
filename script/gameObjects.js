@@ -74,7 +74,7 @@ class GameObject{
     }
 
     Render(x,y){
-        if(this.enabled && this.Body().length > 0){
+        if(this.enabled){
             GFX.Sprite(this.pos.x-x, this.pos.y-y, 
                 this.Body(), this.col, this.size);
         }
@@ -372,6 +372,7 @@ class BossPanel extends GameObject {
         this.enabled = 1;
         this.shotTimer = 1;
         this.func = func;
+        this.countDown = 0;
     }
     
     Collider (perp){
@@ -379,14 +380,26 @@ class BossPanel extends GameObject {
     }
 
     Die(){
-        if(--this.strength == 0){
+        if(--this.strength < 0){
             GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.col);
             this.parent.LoseLife();
             super.Die();
         }
     }
+
+    Destruct(){
+        this.countDown = Util.Rnd(1);
+    }
     
     Update(dt){
+        if(this.countDown > 0){
+            this.countDown -= dt;
+            if(this.countDown < 0)
+            {
+                GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.col);
+                super.Die();
+            }
+        }
         if(this.parent){
             this.pos = this.parent.pos;
 
@@ -456,7 +469,9 @@ class Boss extends GameObject {
         this.deadly = null;
         this.enabled = 1;
         this.shotTimer = 1;
-        this.lives = 10;this.Init(template);
+        this.lives = this.Init(template);
+        this.dieAt = this.lives - 10;
+        this.countDown = 0;
     }
     
     Init(t){
@@ -504,13 +519,27 @@ class Boss extends GameObject {
     }
 
     LoseLife(){
-        this.lives--;
-        if(this.lives == 0){
-            this.Die();
+        if(this.countDown==0)
+        {
+            this.lives--;
+            if(this.lives < this.dieAt){
+                var ps = GAME.gameObjects.Get([C.ASSETS.BOSSPART]);
+                for (var i = 0; i < ps.length; i++) {
+                    ps[i].Destruct();
+                }
+                this.countDown = 3;
+            }            
         }
     }
 
     Update(dt){
+        if(this.countDown > 0)
+        {
+            this.countDown -= dt;
+            if(this.countDown < 0){
+                this.Die();
+            }
+        }
         if(this.targetPos){
 
             var accel = new Vector2();

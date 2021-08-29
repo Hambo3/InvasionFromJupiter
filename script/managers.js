@@ -82,12 +82,16 @@ class Game{
     }
 
     PlayerDie(p){
+        //REINSERT THIS
         // this.Lives --;
         // if(this.Lives==0){
         //     this.mode = 4;
         // }
-        p.pos = new Vector2(-2*32,24*32);
-        p.auto = new Vector2(8*32,24*32);
+        //REINSERT THIS
+        var b = MAP.ScreenBounds();
+        p.pos = new Vector2(b.Min.x-(2*32), b.Max.y-((b.Max.y-b.Min.y)/2));
+        p.auto = p.pos.Clone();
+        p.auto.x+=(10*32);
 
         this.ready = 0;
         this.player.enabled = 0;
@@ -269,16 +273,16 @@ class Game{
                 this.zoomTransition = 0;
             }
 
-            if(this.transition==0){
-                this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 2, new Vector2(b.Max.x + 100, b.Max.y-16), this.levelSpeed);
-                this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 1, new Vector2(b.Max.x + 100, b.Max.y-32), this.levelSpeed*0.7);
+            // if(this.transition==0){
+            //     this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 2, new Vector2(b.Max.x + 100, b.Max.y-16), this.levelSpeed);
+            //     this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 1, new Vector2(b.Max.x + 100, b.Max.y-32), this.levelSpeed*0.7);
 
-                if(!this.player.auto){
-                   this.ufoTimer=this.AlienGen(Util.RndI(0,2), this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
-                }
-            }  
+            //     if(!this.player.auto){
+            //        this.ufoTimer=this.AlienGen(Util.RndI(0,2), this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
+            //     }
+            // }  
             
-            this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), this.levelSpeed*0.7);
+            // this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), this.levelSpeed*0.7);
 
         }
         if(this.level == 4){
@@ -289,7 +293,6 @@ class Game{
             {
                 this.zoomTransition = 0;
                 this.gameObjects.Remove([C.ASSETS.ENEMY]);
-                console.log("Remove");
             }
 
             if(!this.boss){
@@ -301,6 +304,17 @@ class Game{
                     this.levelDistance = 0;
                     this.boss = null;
                 }
+            }
+        }
+        if(this.level == 6){
+            if(MAP.scale < 1)
+            {
+                MAP.scale = 1;
+                this.zoomTransition = 0;
+            }
+
+            if(this.transition==0){
+                this.mode = 4;
             }
         }
     }
@@ -324,6 +338,9 @@ class Game{
         else if(Input.IsDown('KeyZ') ) {
             MAP.Zoom(-0.01);	
             this.offset = MAP.ScrollTo(this.player.pos, this.scrollRate);
+        }
+        else if(Input.IsSingle('KeyI') ) {
+            this.levelDistance = 500;          
         }
         //#endregion DEBUG
         
