@@ -21,14 +21,14 @@ zzfxX=new(window.AudioContext||webkitAudioContext) // audio context
       
   }
   
-  function play() {
-    zzfx(...[,,1223,.06,.24,.06,2,.25,-0.5,11.3,134,-0.01,.06,,4,,.01,.34,.06,.03]);
+  function play(n) {
+    zzfx(...SOUNDS[n]);
     }
   
     return{
-        Play: function()
+        Play: function(n)
         {
-            play();
+            play(n);
         }
     }
   }

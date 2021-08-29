@@ -541,6 +541,7 @@ class Render{
                 this.PT(pt.y + y)
                 ); 
         }
+
         this.ctx.closePath();
         this.ctx.fill();
     }
