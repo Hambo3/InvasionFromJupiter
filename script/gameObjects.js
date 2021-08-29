@@ -124,6 +124,7 @@ class Player extends GameObject {
         if(!this.auto){
             GAME.ParticleGen(this.pos, 3, this.col, 3);
             GAME.PlayerDie(this);
+            AUDIO.Play(2);
         }
     }
     Collider (perp){
@@ -172,7 +173,7 @@ class Player extends GameObject {
                             new Lazer(new Vector2(this.pos.x+32, this.pos.y), C.ASSETS.PLRSHOT ));
                     }
 
-                    AUDIO.Play();
+                    AUDIO.Play(0);
                 }
             }
 
@@ -222,7 +223,7 @@ class Alien extends GameObject {
     }
 
     Die(){
-        GAME.ParticleGen(this.pos, 2, this.col, 4);
+        GAME.ParticleGen(this.pos, 2, this.col, 3);
         super.Die();
     }
     
@@ -341,6 +342,7 @@ class Alien extends GameObject {
                     }
 
                     this.shotTimer = Util.Rnd(1)+1;
+                    AUDIO.Play(1);
                 }
             }            
         }
@@ -381,7 +383,7 @@ class BossPanel extends GameObject {
 
     Die(){
         if(--this.strength < 0){
-            GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.col);
+            GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.col, 5);
             this.parent.LoseLife();
             super.Die();
         }
