@@ -866,3 +866,24 @@ class Trail{
         this.enabled = 1;
     }
 }
+
+class Dood{
+
+    constructor(pos){
+        this.pos = pos;
+        this.col = ["#f00","#0f0"];
+        this.body = [
+            [0,[-64,0, -64,-64, 64,-64, 64,0],
+            1,[-32,-64, -32,-96, 32,-96, 32,-64]]
+        ];
+    }
+
+    Update(dt){
+
+    }
+
+    Render(){
+        SFX.Sprite(this.pos.x, this.pos.y, 
+            this.body[0], this.col, 1);
+    }
+}

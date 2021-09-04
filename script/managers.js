@@ -5,8 +5,18 @@ class Title{
         this.mode = 1;
         this.col = new Color(100,100,100,0);
         this.cols = [new Color(255,0,0,1),new Color(255,255,0,1)];
-        this.titleTimer = 1;
-        this.titleRate = 0;
+        this.doods = [];
+
+        this.timer = 0;
+
+        this.scene = 0;
+        this.sceneTimer = 6;
+        this.scenes=[
+            {hd:"OBJECTS SEEN IN SKY",sb:"BLETCHLEY RESIDENTS CONFUSED"},
+            {hd:"OBJECTS SEEN IN SKY",sb:"FREE DOGHNUTS AT JOES CAFE"}
+        ];
+
+        this.doods.push(new Dood(new Vector2(400,400)));
     }
 
     Events(dt){
@@ -14,39 +24,64 @@ class Title{
 
     Update(dt)
     {
-        if(this.titleRate>=1 && Input.Fire1() ) {
+        if(this.timer>=6 && Input.Fire1() ) {
             this.mode = 2;
         }
 
-        if(this.titleRate<1){
-            this.titleTimer -= dt;
-
-            if(this.titleTimer <= 0){
-                this.titleRate += 0.01;
-                if(this.titleRate < 1){
-                    this.titleTimer = 0.02;
-                }
-            }
+        if(this.timer < 6){
+            this.timer += dt;
         }
+
+        this.sceneTimer -= dt;
+        if(this.sceneTimer <=0)
+        {
+            this.sceneTimer = 6;
+            this.scene++;
+            if(this.scene>1)
+            {
+                this.scene=0;
+            }
+        } 
     }
 
     Render()
     {
-        SFX.Box(0,0,SFX.bounds.w, SFX.bounds.h,"#888");
-        for (let i = 0; i < 2; i++) {
+        var w = SFX.bounds.w;
+        var h = SFX.bounds.h;
+        SFX.Box(0,0,w,h,"#555"); 
 
-            var c = this.col.Clone().Lerp(this.cols[i], this.titleRate).RGBA(); 
-            SFX.Text("JUPITERS",300-i,100-i,6, 1, c);
-            SFX.Text("INVASION",310-i,144-i,6, 1, c);
-            SFX.Text("ON BLETCHLEY",320-i,190-i,4, 1, c);
-            SFX.Text("FROM",380-i,224-i,4, 1, c);
-            SFX.Text("SPACE",370-i,260-i,8, 1, c);   
+        if(this.timer>1)
+        {
+            for (let i = 0; i < this.doods.length; i++) {
+                this.doods[i].Render();
+            }
+
+            SFX.Box(0,h-40,w, 40,"#777");
+            SFX.Text(this.scenes[this.scene].sb,20,h-30,3, 0, "#000");
+
+            SFX.Box(0,h-140,w, 100,"#ccc");
+            SFX.Text(this.scenes[this.scene].hd,20,h-130,5, 0, "#000");
+
+            SFX.Box(0,h-180,260, 40,"#eee");
+            SFX.Text("BREAKING NEWS",20,h-170,4, 0, "#000");  
         }
 
-        if(this.titleRate>=1){
+        if(this.timer > 3)
+        {
+            for (let i = 0; i < 2; i++) {
+                var c = this.col.Clone().Lerp(this.cols[i], 
+                    Util.Remap(3, 6, 0,1, this.timer)).RGBA(); 
+                SFX.Text("JUPITERS",300-i,100-i,6, 1, c);
+                SFX.Text("INVASION",310-i,144-i,6, 1, c);
+                SFX.Text("ON BLETCHLEY",320-i,190-i,4, 1, c);
+                SFX.Text("FROM",380-i,224-i,4, 1, c);
+                SFX.Text("SPACE",370-i,260-i,8, 1, c);   
+            }
+        }
+
+        if(this.timer>=6){
             SFX.Text("FIRE TO START [K]",320,440,4, 0, this.cols[0]); 
         }
-
     }
 }
 
