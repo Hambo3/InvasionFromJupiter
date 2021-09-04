@@ -270,7 +270,7 @@ class Game{
             if(this.transition==0){
                 if(!this.player.auto){
                    this.ufoTimer=this.AlienGen(1, this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
-                }wkkkasssasdkw
+                }
             }
             else{
                 this.ufoTimer = 1;
