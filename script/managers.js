@@ -141,16 +141,16 @@ class Game{
         }
     }
 
-    ObjectGen(type, obj, t, min, max, pos, a){
+    ObjectGen(type, obj, t, min, max, pos, sp, i){
         if(t < 0 )
         {
             t = Util.Rnd(max)+min;
             var d = this.gameObjects.Is(type);
             if(d){
-                d.Set( pos );
+                d.Set( pos, i);
             }
             else{
-                this.gameObjects.Add(new obj(pos, type, a ));
+                this.gameObjects.Add(new obj(pos, type, sp, i));
             }
         }
         return t;
@@ -213,31 +213,34 @@ class Game{
         {
 
             if(this.transition==0){
-                this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 2, new Vector2(b.Max.x + 100, b.Max.y-16), this.levelSpeed);
-                this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 1, new Vector2(b.Max.x + 100, b.Max.y-32), this.levelSpeed*0.7);
+                this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 2, 
+                                new Vector2(b.Max.x + 100, b.Max.y-16), this.levelSpeed);
+                this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 1, 
+                                new Vector2(b.Max.x + 100, b.Max.y-32), this.levelSpeed*0.7);
 
                 if(!this.player.auto){
                    this.ufoTimer=this.AlienGen(Util.RndI(0,2), this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
                 }
             }  
-            
-            this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), this.levelSpeed*0.7);
+
+            this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, 
+                                new Vector2(b.Max.x + 100, b.Max.y), this.levelSpeed*0.7);
         }
         if(this.level > 0)      //its space!
         {
-            this.timer1 = this.ObjectGen(C.ASSETS.STAR, Star, this.timer1-dt, 0, 0.3, new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), Util.RndI(0,3));
+            this.timer1 = this.ObjectGen(C.ASSETS.STAR, Star, this.timer1-dt, 0, 0.3, 
+                        new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), Util.RndI(0,3));
         }
         if(this.level == 1 || this.level == 3){
             if(this.transition==0){
                 if(!this.player.auto){
                    this.ufoTimer=this.AlienGen(1, this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
-                }
+                }wkkkasssasdkw
             }
             else{
                 this.ufoTimer = 1;
                 if(this.transition==1){
                     this.gameObjects.Remove([C.ASSETS.ENEMY]);
-                    console.log("Remove");
                 }
             }
         }
@@ -273,18 +276,16 @@ class Game{
                 this.zoomTransition = 0;
             }
 
-            // if(this.transition==0){
-            //     this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 2, new Vector2(b.Max.x + 100, b.Max.y-16), this.levelSpeed);
-            //     this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 1, new Vector2(b.Max.x + 100, b.Max.y-32), this.levelSpeed*0.7);
+            if(this.zoomTransition == 0 && this.transition==0){
+                var t = Util.OneIn(2);
+                this.timer1 = this.ObjectGen(C.ASSETS.HILL, Hill, this.timer1-dt, 1, 2, 
+                                    new Vector2(b.Max.x + 100, t ? b.Min.y: b.Max.y-16), this.levelSpeed, t);
 
-            //     if(!this.player.auto){
-            //        this.ufoTimer=this.AlienGen(Util.RndI(0,2), this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
-            //     }
-            // }  
-            
-            // this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, new Vector2(b.Max.x + 100, b.Max.y), this.levelSpeed*0.7);
-
+                this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, 
+                                    new Vector2(b.Max.x + 100, b.Max.y), this.levelSpeed*0.7);
+            }
         }
+
         if(this.level == 4){
 
         }

@@ -115,7 +115,7 @@ class Player extends GameObject {
         this.size = 1.0;
         this.width = 32*this.size;
         this.height = 16*this.size;
-        this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY, C.ASSETS.BOSSPART];
+        this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY, C.ASSETS.BOSSPART,C.ASSETS.HILL];
         this.hit = Util.HitBox([-15,-7,15,-2,12,1,-16,2]);
         this.enabled = 1; 
     }
@@ -398,7 +398,7 @@ class BossPanel extends GameObject {
             this.countDown -= dt;
             if(this.countDown < 0)
             {
-                GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.col);
+                GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.col, 5);
                 super.Die();
             }
         }
@@ -472,7 +472,7 @@ class Boss extends GameObject {
         this.enabled = 1;
         this.shotTimer = 1;
         this.lives = this.Init(template);
-        this.dieAt = this.lives - 10;
+        this.dieAt = this.lives - 10; //??
         this.countDown = 0;
     }
     
@@ -635,6 +635,37 @@ class Block extends Scrollable{
     }
 }
 
+class Hill extends Scrollable{
+
+    constructor(pos, type, spd, top){
+        super(pos, type, spd ); 
+
+        this.cols = [
+                ["#555","#666","#777"],
+                ["#111"]
+            ];
+        this.col = type == C.ASSETS.HILL ? this.cols[0] : this.cols[1];
+        this.Set(pos, top);
+    }
+
+    Set(p, i){
+        var rt = Util.RndI(1,4)*32;
+        var lt = Util.RndI(1,4)*32;
+        var ht = Util.RndI(2,6)*32;
+        this.width = rt+lt;
+        this.height = ht;
+        this.size = 1;
+        this.body = [
+             [Util.RndI(0,3), i ? [-rt,0, 0,ht, lt,0] : [-rt,0, 0,-ht, lt,0]]
+        ];
+
+        this.hit = Util.HitBox(this.body[0][1]);
+
+        this.pos = p;
+        this.enabled = 1;
+    }
+}
+
 class Ground extends Scrollable{
 
     constructor(pos, type, spd ){
@@ -718,7 +749,7 @@ class Bullet extends Shot{
         this.width = 4;
         this.height = 4;
 
-        this.deadly = [C.ASSETS.SHACK, C.ASSETS.PLAYER];
+        this.deadly = [C.ASSETS.SHACK, C.ASSETS.PLAYER,C.ASSETS.HILL];
 
         this.body = [
             [0,[-3,-2,3,-2,3,2,-3,2],0,[-2,-3,2,-3,2,3,-2,3],1,[-2,-2,2,-2,2,2,-2,2],2,[-1,-1,1,-1,1,1,-1,1]]
@@ -752,7 +783,7 @@ class Lazer extends Shot{
         this.height = 4;
 
         this.trail = new ObjectPool();
-        this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY,C.ASSETS.BOSSPART];
+        this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY,C.ASSETS.BOSSPART,C.ASSETS.HILL];
 
         this.dir = new Vector2(1, 0);
         this.Set(pos);
