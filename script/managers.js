@@ -182,7 +182,7 @@ class Game{
             t = Util.Rnd(max)+min;
             var d = this.gameObjects.Is(type);
             if(d){
-                d.Set( pos, i);
+                d.Set( pos, i, sp);
             }
             else{
                 this.gameObjects.Add(new obj(pos, type, sp, i));
@@ -318,7 +318,7 @@ class Game{
                                     new Vector2(b.Max.x + 100, t ? b.Min.y: b.Max.y-16), this.levelSpeed, t);
 
                 this.timer3 = this.ObjectGen(C.ASSETS.GRNDCITY, Ground, this.timer3-dt, 1.4, 0, 
-                                    new Vector2(b.Max.x + 100, b.Max.y), this.levelSpeed*0.7);
+                                    new Vector2(b.Max.x + 100, b.Max.y), this.levelSpeed);
             }
         }
 

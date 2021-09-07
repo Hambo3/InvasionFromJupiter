@@ -525,19 +525,25 @@ class Boss extends GameObject {
             {
                 var q = parseInt(t[i][j]);
                 if(q > 0){
-                    var d = BCELL[ BDATA[q][0] ];
-                    var c = BDATA[q][1];
+                    var pt = [];
+                    for(var b = 0; b < BDATA[q].length; b+=2) {
+                        var d = BCELL[ BDATA[q][b] ];
+                        var c = BDATA[q][b+1];
 
-                    var dd = [];
-                    for(var k = 0; k < d.length; k+=2) {
-                        dd.push(d[k]+x, d[k+1]+y);
+                        var dd = [];
+                        for(var k = 0; k < d.length; k+=2) {
+                            dd.push(d[k]+x, d[k+1]+y);
+                        }
+                        pt.push(c);
+                        pt.push(dd);
                     }
+
                     var p = GAME.gameObjects.Is( C.ASSETS.BOSSPART);
                     if(p){
-                        p = new BossPanel(this.pos, [c,dd], 0, this);
+                        p = new BossPanel(this.pos, pt, 0, this);
                     }
                     else{
-                        p = new BossPanel(this.pos, [c,dd], 0, this);
+                        p = new BossPanel(this.pos, pt, 0, this);
                         GAME.gameObjects.Add(p);
                     }
                     
@@ -691,7 +697,7 @@ class Hill extends Scrollable{
     Set(p, i){
         var rt = Util.RndI(1,4)*32;
         var lt = Util.RndI(1,4)*32;
-        var ht = Util.RndI(2,6)*32;
+        var ht = Util.RndI(2,12)*32;
         this.width = rt+lt;
         this.height = ht;
         this.size = 1;
@@ -720,12 +726,13 @@ class Ground extends Scrollable{
 
         this.hit = Util.HitBox(this.body[0][1]);       
 
-        this.Set(pos);
+        this.Set(pos,0,spd);
     }
 
-    Set(p){
+    Set(p,n,sp){
         this.pos = p;
         this.enabled = 1;
+        this.speed = sp;
     }
 }
 
