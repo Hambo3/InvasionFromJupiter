@@ -1,10 +1,21 @@
 class Color
 {
-    constructor(r=0,g=0,b=0,a=1) { this.r=r;this.g=g;this.b=b;this.a=a; }
-    //Copy(c)                      { this.r=c.r;this.g=c.g;this.b=c.b;this.a=c.a; return this; }
-    Clone(s=1)                   { return new Color(this.r*s, this.g*s, this.b*s, this.a*s); }
+    constructor(c,a=1) { 
+        var s = c.split(''); 
+        var rgb = [];
+        for (var i = 1; i < s.length; i++) {
+            rgb.push(parseInt(s[i], 16));
+        }
+        this.r=rgb[0]*16;this.g=rgb[1]*16;this.b=rgb[2]*16;this.a=a; 
+    }    
+    Clone(s=1) { 
+        var r = new Color("#000", this.a*s); 
+        r.r = this.r*s;
+        r.g = this.g*s;
+        r.b = this.b*s; 
+        return r;
+    }
     Subtract(c)                  { this.r-=c.r;this.g-=c.g;this.b-=c.b;this.a-=c.a; return this; }
-    //SetAlpha(a)                  { this.a=a; return this; } 
     Lerp(c,p)                    { return c.Clone().Subtract(c.Clone().Subtract(this).Clone(1-p)); }
     RGBA()                       { return 'rgba('+this.r+','+this.g+','+this.b+','+this.a+')';
     }
@@ -360,21 +371,45 @@ class BossPanel extends GameObject {
     constructor(pos, body, func, parent)
     {
         super(pos, C.ASSETS.BOSSPART);
+        
+        this.srcCol = [];
         this.col = ["#ccc","#aaa","#999","#777","#555","#f00"];
+        for (var i = 0; i < this.col.length; i++) {
+            this.srcCol.push(new Color(this.col[i]));
+        }
+
+        this.cols = [];
+
         this.width = 32;
         this.height = 32;
+
+        this.enabled = 1;
+        this.shotTimer = 1;
+        this.func = func;
+        this.countDown = 0;   
+        this.strength = 5;
+
         this.body = [
             body
         ];
+        
+        var dcol = new Color("#000");
+        for (let j = 0; j <= this.strength; j++) {
+            var c = [];
+            for (let i = 0; i < this.srcCol.length; i++) {                
+                var cc = this.srcCol[i].Clone().Lerp(dcol, 
+                    Util.Remap(this.strength,0, 0,1, j)).RGBA();
+                c.push(cc);
+            }
+            this.cols.push(c);
+        }
+
+        this.col = this.cols[this.strength];
         this.parent = parent;
         this.deadly = null;
         this.hit = Util.HitBox(this.body[0][1]);//1st panel must define hitbox also
         this.center = Util.BodyCenter(this.body[0][1]);
-        this.strength = 3;
-        this.enabled = 1;
-        this.shotTimer = 1;
-        this.func = func;
-        this.countDown = 0;
+
     }
     
     Collider (perp){
@@ -382,11 +417,15 @@ class BossPanel extends GameObject {
     }
 
     Die(){
-        if(--this.strength < 0){
-            GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.col, 5);
+        if(--this.strength == 0){
+            GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.srcCol, 5);
             this.parent.LoseLife();
             super.Die();
         }
+        else{
+            this.col = this.cols[this.strength];
+        }
+
     }
 
     Destruct(){
@@ -398,7 +437,7 @@ class BossPanel extends GameObject {
             this.countDown -= dt;
             if(this.countDown < 0)
             {
-                GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.col, 5);
+                GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.srcCol, 5);
                 super.Die();
             }
         }
@@ -486,11 +525,12 @@ class Boss extends GameObject {
             {
                 var q = parseInt(t[i][j]);
                 if(q > 0){
-                    var c = BDATA[q][0];
-                    var d = BCELL[ BDATA[q][1] ];
+                    var d = BCELL[ BDATA[q][0] ];
+                    var c = BDATA[q][1];
+
                     var dd = [];
                     for(var k = 0; k < d.length; k+=2) {
-                        dd.push(x-d[k], y-d[k+1]);
+                        dd.push(d[k]+x, d[k+1]+y);
                     }
                     var p = GAME.gameObjects.Is( C.ASSETS.BOSSPART);
                     if(p){
@@ -845,7 +885,8 @@ class Particle extends GameObject{
         this.velocity.Add(acc);
         if(this.op>0){
             this.op-=0.01;
-            this.col = [Util.ToCOL(this.rgb, this.op)];
+            this.rgb.a = this.op;
+            this.col = [this.rgb.RGBA()];
             if(this.op<=0){
                 this.enabled = 0;
             }             
@@ -871,11 +912,40 @@ class Dood{
 
     constructor(pos){
         this.pos = pos;
-        this.col = ["#f00","#0f0"];
-        this.body = [
-            [0,[-64,0, -64,-64, 64,-64, 64,0],
-            1,[-32,-64, -32,-96, 32,-96, 32,-64]]
-        ];
+        this.col = ["#f00","#0f0","#fff","#000"];
+        var bod = [1,[-32,-64,-8,-64,-8,-71,8,-71,8,-64,32,-64,32,0,-32,0]];
+        var hed = [0,[12,-16,16,-11,16,4,14,16,-14,16,-16,4,-16,-11,-12,-16]];
+        var eye = [2,[-3,-2,3,-2,3,2,-3,2],3,[-1,-1,1,-1,1,1,-1,1]];
+        var nos = [1,[-1,0,1,0,2,6,-2,6]];
+        var tlip = [1,[-4,-1,4,-1,5,0,-5,0]];
+        var blip = [1,[-5,0,5,0,4,2,-4,2]];
+
+        var b = [];
+        var xs = 2;
+        var ys=2;
+        Util.PersonPos(b, bod,
+            0*xs,0*ys,
+            xs,ys);
+        Util.PersonPos(b, hed,
+            0*xs,-84*ys,
+            xs,ys+2);
+
+        Util.PersonPos(b, eye,
+            -6*xs,-86*ys,
+            xs+1,ys+1);
+        Util.PersonPos(b, eye,
+            6*xs,-86*ys,
+            xs+1,ys+1);
+        Util.PersonPos(b, nos,
+            0*xs,-84*ys,
+            xs,ys);
+        Util.PersonPos(b, tlip,
+            0*xs,-74*ys,
+            xs,ys);
+        Util.PersonPos(b, blip,
+            0*xs,-74*ys,
+            xs,ys);
+        this.body= [b];
     }
 
     Update(dt){

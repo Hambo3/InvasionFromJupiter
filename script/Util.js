@@ -113,18 +113,12 @@ var Util = {
     Rnd: function (max){
         return Math.random() * max;
     }, 
-    IntNormalise: function(n,r){
-        return (r+1)-n;
-    }, 
     Min: function(a, b)
     {
         return (a<b)? a : b;
     },
     Max: function(a, b){
         return (a>b)? a : b;
-    },
-    AbsDist: function(p1, p2){
-        return Math.abs( p1 - p2);
     },
     Wave: function(a,w,x,y){
         //var yp = Wave(20, 0.05, x, y);
@@ -136,16 +130,16 @@ var Util = {
 		canvas.height = h;
         return {ctx:canvas.getContext('2d'), canvas:canvas};
     },
-    ToRGB: function(col){
-        var seg = col.split(''); 
-        var rgb = [];
-        for (var i = 1; i < seg.length; i++) {
-            rgb.push(parseInt(seg[i], 16));
+    PersonPos: function(n,b, x, y,xs,ys)
+    {
+        for (var i = 0; i < b.length; i++) {
+            n.push(b[i++]);
+            var t =[];
+            for (var j = 0; j < b[i].length; j+=2) {                
+                t.push((b[i][j]*xs)+x, (b[i][j+1]*ys)+y);
+            }
+            n.push(t);
         }
-        return rgb;
-    },
-    ToCOL: function(rgb, op){
-        return "rgba("+(rgb[0]*16)+","+(rgb[1]*16)+","+(rgb[2]*16)+","+op+")";
     }
 
 }

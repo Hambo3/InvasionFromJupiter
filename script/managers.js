@@ -3,8 +3,8 @@ class Title{
     constructor()
     {
         this.mode = 1;
-        this.col = new Color(100,100,100,0);
-        this.cols = [new Color(255,0,0,1),new Color(255,255,0,1)];
+        this.col = new Color("#555");
+        this.cols = [new Color("#f00"),new Color("#ff0")];
         this.doods = [];
 
         this.timer = 0;
@@ -16,7 +16,7 @@ class Title{
             {hd:"OBJECTS SEEN IN SKY",sb:"FREE DOGHNUTS AT JOES CAFE"}
         ];
 
-        this.doods.push(new Dood(new Vector2(400,400)));
+        this.doods.push(new Dood(new Vector2(400,500)));
     }
 
     Events(dt){
@@ -71,11 +71,11 @@ class Title{
             for (let i = 0; i < 2; i++) {
                 var c = this.col.Clone().Lerp(this.cols[i], 
                     Util.Remap(3, 6, 0,1, this.timer)).RGBA(); 
-                SFX.Text("JUPITERS",300-i,100-i,6, 1, c);
-                SFX.Text("INVASION",310-i,144-i,6, 1, c);
-                SFX.Text("ON BLETCHLEY",320-i,190-i,4, 1, c);
-                SFX.Text("FROM",380-i,224-i,4, 1, c);
-                SFX.Text("SPACE",370-i,260-i,8, 1, c);   
+                SFX.Text("JUPITERS",30-i,10-i,6, 1, c);
+                SFX.Text("INVASION",40-i,54-i,6, 1, c);
+                SFX.Text("ON BLETCHLEY",50-i,100-i,4, 1, c);
+                SFX.Text("FROM",70-i,134-i,4, 1, c);
+                SFX.Text("SPACE",60-i,170-i,8, 1, c);   
             }
         }
 
@@ -168,7 +168,7 @@ class Game{
             ];
             b.enabled = 1;
             b.op = 1;
-            b.rgb = Util.ToRGB(cols[l]);
+            b.rgb = cols[l] instanceof Object ? cols[l] : new Color(cols[l]);
 
             var sp = 4 + (parseInt(i/4)*4);
             b.speed = Util.RndI(sp, sp+4);
@@ -276,6 +276,7 @@ class Game{
                 this.ufoTimer = 1;
                 if(this.transition==1){
                     this.gameObjects.Remove([C.ASSETS.ENEMY]);
+                    this.particles.Clear();
                 }
             }
         }
@@ -286,7 +287,7 @@ class Game{
                 this.zoomTransition = 0;
                 MAP.scale = 1.5;
                 this.gameObjects.Remove([C.ASSETS.ENEMY]);
-                console.log("Remove");
+                this.particles.Clear();
             }
 
             //if(this.transition==1){
@@ -329,6 +330,7 @@ class Game{
             {
                 this.zoomTransition = 0;
                 this.gameObjects.Remove([C.ASSETS.ENEMY]);
+                this.particles.Clear();
             }
 
             if(!this.boss){
