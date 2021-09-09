@@ -129,6 +129,7 @@ class Player extends GameObject {
         this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY, C.ASSETS.BOSSPART,C.ASSETS.HILL];
         this.hit = Util.HitBox([-15,-7,15,-2,12,1,-16,2]);
         this.enabled = 1; 
+        this.score = 0;
     }
     
     Die(){
@@ -168,6 +169,7 @@ class Player extends GameObject {
             }
             else{
                 this.auto = null;
+                GAME.Lives --;
             }         
         }
         else{
@@ -181,7 +183,7 @@ class Player extends GameObject {
                     }
                     else{
                         GAME.gameObjects.Add(
-                            new Lazer(new Vector2(this.pos.x+32, this.pos.y), C.ASSETS.PLRSHOT ));
+                            new Lazer(new Vector2(this.pos.x+32, this.pos.y), C.ASSETS.PLRSHOT, this ));
                     }
 
                     AUDIO.Play(0);
@@ -227,6 +229,7 @@ class Alien extends GameObject {
 
         this.dpos;
         this.Set(pos,t,m);
+        this.points = 100;
     }
     
     Collider (perp){
@@ -502,7 +505,6 @@ class Boss extends GameObject {
             []
         ];
 
-        this.pattern = [];
         this.size = 1;
         this.targetPos;
         this.target;
@@ -513,6 +515,7 @@ class Boss extends GameObject {
         this.lives = this.Init(template);
         this.dieAt = this.lives - 10; //??
         this.countDown = 0;
+        this.mTimer = Util.Rnd(2)+3;
     }
     
     Init(t){
@@ -523,7 +526,7 @@ class Boss extends GameObject {
         {
             for(var j = 0; j < t[i].length; j++) 
             {
-                var q = parseInt(t[i][j]);
+                var q = t[i].charCodeAt(j)-96;
                 if(q > 0){
                     var pt = [];
                     for(var b = 0; b < BDATA[q].length; b+=2) {
@@ -597,6 +600,24 @@ class Boss extends GameObject {
 
             this.velocity.Add(accel);
         } 
+        this.mTimer-=dt;  
+
+        if(this.mTimer < 0)
+        {
+            var b = MAP.ScreenBounds();  
+            var cw = (b.Max.x-b.Min.x)/4;
+            var ch = (b.Max.y-b.Min.y)/4;
+            this.targetPos = new Vector2(b.Min.x + (Util.RndI(1,4)*cw), 
+                b.Min.y+(Util.RndI(1,4)*ch));   
+
+            if(!this.target.enabled)   
+            {
+                this.targetPos.x = b.Min.x + (3 *cw);
+            }          
+
+            this.mTimer = Util.Rnd(2)+3;
+        }
+
         super.Update(dt);
     }
 }
@@ -801,7 +822,7 @@ class Bullet extends Shot{
         this.body = [
             [0,[-3,-2,3,-2,3,2,-3,2],0,[-2,-3,2,-3,2,3,-2,3],1,[-2,-2,2,-2,2,2,-2,2],2,[-1,-1,1,-1,1,1,-1,1]]
         ];
-        this.hit = Util.HitBox(this.body[0][7]);
+        this.hit = Util.HitBox(this.body[0][5]);
 
         this.Set(pos, dir);
     }
@@ -822,7 +843,7 @@ class Bullet extends Shot{
 
 class Lazer extends Shot{
 
-    constructor(pos, type ){
+    constructor(pos, type, parent){
         super(pos, type, 128);
         this.col = ["#377","#4dc"];
 
@@ -833,10 +854,14 @@ class Lazer extends Shot{
         this.deadly = [C.ASSETS.SHACK, C.ASSETS.ENEMY,C.ASSETS.BOSSPART,C.ASSETS.HILL];
 
         this.dir = new Vector2(1, 0);
+        this.parent = parent;
         this.Set(pos);
     }
 
     Collider (perp){
+        if(perp.points){
+            this.parent.score += perp.points;
+        }
         perp.Die();
         GAME.ParticleGen(this.pos, 1, this.col);
         super.Die();
@@ -919,48 +944,60 @@ class Dood{
 
     constructor(pos){
         this.pos = pos;
-        this.col = ["#f00","#0f0","#fff","#000"];
-        var bod = [1,[-32,-64,-8,-64,-8,-71,8,-71,8,-64,32,-64,32,0,-32,0]];
-        var hed = [0,[12,-16,16,-11,16,4,14,16,-14,16,-16,4,-16,-11,-12,-16]];
-        var eye = [2,[-3,-2,3,-2,3,2,-3,2],3,[-1,-1,1,-1,1,1,-1,1]];
-        var nos = [1,[-1,0,1,0,2,6,-2,6]];
-        var tlip = [1,[-4,-1,4,-1,5,0,-5,0]];
-        var blip = [1,[-5,0,5,0,4,2,-4,2]];
+        this.col = ["#000","#eee",
+        "#999","#888","#777",//face
+        "#aaa","#999","#888",//hi
+        "#666","#555","#444",//hair
+        "#333"];//body
+        var bd = 11;
+        var fc = Util.RndI(2,5);
+        var hr = Util.RndI(8,11);
+
+
+        var bod = [bd,[-32,-64,-8,-64,-8,-71,8,-71,8,-64,32,-64,32,0,-32,0]];
+        var hed = [fc,[12,-16,16,-11,16,4,14,16,-14,16,-16,4,-16,-11,-12,-16]];
+        var eye = [1,[-3,-2,3,-2,3,2,-3,2],3,[-1,-1,1,-1,1,1,-1,1]];
+        var nos = [fc+3,[-1,0,1,0,2,6,-2,6]];
+        var tlip = [8,[-4,-1,4,-1,5,0,-5,0]];
+        var blip = [8,[-5,0,5,0,4,2,-4,2]];
 
         var b = [];
-        var xs = 2;
-        var ys=2;
-        Util.PersonPos(b, bod,
-            0*xs,0*ys,
-            xs,ys);
-        Util.PersonPos(b, hed,
-            0*xs,-84*ys,
-            xs,ys+2);
+        var lp = [];
+        var xs = 3;
+        var ys = 3;
+        var hd = this.Rate(1);
+        var bs = this.Rate(2);
+        Util.PersonPos(b, bod, 0*xs,0*ys, xs+bs[0],ys+bs[1]);
+        Util.PersonPos(b, hed, 0*xs,-84*ys, xs+hd[0],ys+hd[1]);
 
-        Util.PersonPos(b, eye,
-            -6*xs,-86*ys,
-            xs+1,ys+1);
-        Util.PersonPos(b, eye,
-            6*xs,-86*ys,
-            xs+1,ys+1);
-        Util.PersonPos(b, nos,
-            0*xs,-84*ys,
-            xs,ys);
-        Util.PersonPos(b, tlip,
-            0*xs,-74*ys,
-            xs,ys);
-        Util.PersonPos(b, blip,
-            0*xs,-74*ys,
-            xs,ys);
-        this.body= [b];
+        var ey = this.Rate(1);
+        Util.PersonPos(b, eye, -6*xs,-86*ys, xs+ey[0],ys+ey[1]);
+        Util.PersonPos(b, eye, 6*xs,-86*ys, xs+ey[0],ys+ey[1]);
+        Util.PersonPos(b, nos, 0*xs,-84*ys, xs,ys);
+        Util.PersonPos(b, tlip, 0*xs,-74*ys, xs,ys);
+        Util.PersonPos(lp, blip, 0*xs,-74*ys, xs,ys);
+        this.body = [b];
+        this.altbody = [lp];
+        this.lip = 0;
+        this.lTimer = 1;
     }
 
+    Rate(s){
+        return [Util.Rnd(s)-(s/2),Util.Rnd(s)-(s/2)];
+    }
     Update(dt){
-
+        this.lTimer -=dt;
+        if(this.lTimer<0)
+        {
+            this.lip = 0;
+            this.lTimer = 0.2;
+        }
     }
 
     Render(){
-        SFX.Sprite(this.pos.x, this.pos.y, 
-            this.body[0], this.col, 1);
+        this.lip = Util.Remap(1, 0, 6,0, this.lTimer);
+        SFX.Sprite(this.pos.x, this.pos.y, this.body[0], this.col, 1);
+
+        SFX.Sprite(this.pos.x, this.pos.y+this.lip, this.altbody[0], this.col, 1);
     }
 }

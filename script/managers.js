@@ -12,11 +12,13 @@ class Title{
         this.scene = 0;
         this.sceneTimer = 6;
         this.scenes=[
-            {hd:"OBJECTS SEEN IN SKY",sb:"BLETCHLEY RESIDENTS CONFUSED"},
-            {hd:"OBJECTS SEEN IN SKY",sb:"FREE DOGHNUTS AT JOES CAFE"}
+            {nr:0,hd:"OBJECTS SEEN IN SKY",sb:"BLETCHLEY RESIDENTS CONFUSED"},
+            {nr:1,hd:"OBJECTS SEEN IN SKY",sb:"FREE DOGHNUTS AT JOES CAFE"}
         ];
 
-        this.doods.push(new Dood(new Vector2(400,500)));
+        for (let i = 0; i<2; i++) {
+            this.doods.push(new Dood(new Vector2(400,500)));            
+        }
     }
 
     Events(dt){
@@ -42,6 +44,8 @@ class Title{
                 this.scene=0;
             }
         } 
+
+        this.doods[this.scenes[this.scene].nr].Update(dt);
     }
 
     Render()
@@ -52,9 +56,7 @@ class Title{
 
         if(this.timer>1)
         {
-            for (let i = 0; i < this.doods.length; i++) {
-                this.doods[i].Render();
-            }
+            this.doods[this.scenes[this.scene].nr].Render();
 
             SFX.Box(0,h-40,w, 40,"#777");
             SFX.Text(this.scenes[this.scene].sb,20,h-30,3, 0, "#000");
@@ -90,6 +92,7 @@ class Game{
     constructor()
     {
         this.mode = 3;
+        this.high = 0;
         this.scrollRate = 0.03;
         this.gameObjects = new ObjectPool(); 
         this.particles = new ObjectPool(); 
@@ -117,12 +120,13 @@ class Game{
     }
 
     PlayerDie(p){
-        //REINSERT THIS
-        // this.Lives --;
-        // if(this.Lives==0){
-        //     this.mode = 4;
-        // }
-        //REINSERT THIS
+
+        //this.Lives --;
+        if(this.Lives==0){
+            this.transition = 200;
+            this.level=7;
+        }
+
         var b = MAP.ScreenBounds();
         p.pos = new Vector2(b.Min.x-(2*32), b.Max.y-((b.Max.y-b.Min.y)/2));
         p.auto = p.pos.Clone();
@@ -355,6 +359,11 @@ class Game{
                 this.mode = 4;
             }
         }
+        if(this.level == 7){
+            if(this.transition==0){
+                this.mode = 4;
+            }
+        }
     }
 
     Update(dt)
@@ -368,6 +377,9 @@ class Game{
         DEBUG.Print("P", this.particles.Count(true));
 
         DEBUG.Print("EM", this.gameObjects.Count(false, [C.ASSETS.ENEMY]));
+        if(this.boss){
+        DEBUG.Print("BS", "["+this.boss.targetPos.x + "][" + this.boss.targetPos.y+"]");
+        }
 
         if(Input.IsDown('KeyX') ) {
             MAP.Zoom(0.01);
@@ -381,10 +393,11 @@ class Game{
             this.levelDistance = 500;          
         }
         //#endregion DEBUG
-        
+        var b = MAP.ScreenBounds();
+
         if(!this.player.enabled)
         {
-            if(this.gameObjects.Count(false, [C.ASSETS.ENEMY]) == 0 )
+            if(this.gameObjects.Count(false, [C.ASSETS.ENEMY]) == 0 && (!this.boss || this.boss.pos.x > b.Min.x + ((b.Max.x - b.Min.x)/2) ) )
             {
                 this.player.enabled = 1;
             }
@@ -409,6 +422,9 @@ class Game{
 
         for (var i = 0; i < p.length; i++) {
             p[i].Update(dt);
+        }
+        if(this.player.score > this.high){
+            this.high = this.player.score;
         }
     }
 
@@ -439,8 +455,8 @@ class Game{
         MAP.PostRender();
         //scores
         SFX.Box(0,0,SFX.bounds.w, 32,"rgba(100,100,100,0.2)");
-        SFX.Text("1UP: 00000",40, 4, 3, 0, "#fff");
-        SFX.Text("HIGH: 00000",380, 4, 3, 0, "#fff");
+        SFX.Text("1UP: " + Util.NumericText(this.player.score,5),40, 4, 3, 0, "#fff");
+        SFX.Text("HIGH: " + Util.NumericText(this.high,5),380, 4, 3, 0, "#fff");
         for (var i = 0; i < this.Lives; i++) {
             SFX.Sprite(102+(i*20), 27, LIVES, ["#fff"], 1.4);
         }

@@ -140,6 +140,9 @@ var Util = {
             }
             n.push(t);
         }
+    },
+    NumericText: function(val,len){
+        return ("000000"+val).slice(-len);
     }
 
 }
