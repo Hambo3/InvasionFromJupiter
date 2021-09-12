@@ -1,7 +1,8 @@
 class Title{
 
-    constructor(skip)
+    constructor(skip,hi)
     {
+        this.high = hi;
         this.skip = skip;
         this.mode = 1;
         this.col = new Color("#555",0);
@@ -91,7 +92,7 @@ class Title{
 
             if(this.current.sp)
             {
-                SFX.Text("["+this.current.sp+"]",100,h-280,4, 0, "#ccc");  
+                SFX.Text("[ "+this.current.sp+" ]",100,h-280,4, 0, "#ccc");  
             }
 
             SFX.Box(w-366,16,350,280,"#000");
@@ -118,6 +119,7 @@ class Title{
 
 
         if(this.timer>= a[1] ){
+            SFX.Text("HIGH: "+ Util.NumericText(this.high,5),360,30,4, 0, this.cols[0]);
             SFX.Text("FIRE TO START [K]",20,300,4, 0, this.cols[0]); 
         }
     }
@@ -125,10 +127,10 @@ class Title{
 
 class Game{
 
-    constructor()
+    constructor(hi)
     {
         this.mode = 3;
-        this.high = 0;
+        this.high = hi;
         this.scrollRate = 0.03;
         this.gameObjects = new ObjectPool(); 
         this.particles = new ObjectPool(); 
@@ -140,13 +142,13 @@ class Game{
         this.player.auto = new Vector2(16*32,24*32);
         this.gameObjects.Add(this.player);
 
+        MAP.scale = 1;
         this.offset = MAP.ScrollTo(new Vector2(16*32,24*32));
 
         this.level = 0;           
         this.levelDistance = TRANS[this.level].d;
-        this.transition = TRANS[this.level].t;
- 
-        MAP.scale = 1;
+        this.transition = TRANS[this.level].t; 
+
         this.Lives = 5;
         this.zoomTransition = 0;
         this.levelSpeed = 24;

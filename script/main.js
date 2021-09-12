@@ -31,7 +31,7 @@ var GFX;
 var SFX;
 var MAP;
 var AUDIO;
-
+var high = 13000;
 var map={
 	size:{
 		tile:{width:32, height:32},
@@ -78,7 +78,7 @@ function init()
   var now = timestamp();	
 	lastTime = now;
 
-	GAME = new Title(0);
+	GAME = new Title(0,high);
 
 	FixedLoop();  
 }
@@ -90,11 +90,12 @@ function SlowMo(mo){
 function FixedLoop(){
 	if(GAME.mode == 2)
 	{
-		GAME = new Game();
+		GAME = new Game(high);
 	}
 	else if(GAME.mode == 4)
 	{
-		GAME = new Title(1);
+		high = GAME.high;
+		GAME = new Title(1,high);
 	}
 
 	now = timestamp();
