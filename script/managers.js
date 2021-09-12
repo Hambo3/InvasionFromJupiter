@@ -93,6 +93,8 @@ class Title{
             {
                 SFX.Text("["+this.current.sp+"]",100,h-280,4, 0, "#ccc");  
             }
+
+            SFX.Box(w-366,16,350,280,"#000");
         }
 
          
@@ -145,7 +147,7 @@ class Game{
         this.transition = TRANS[this.level].t;
  
         MAP.scale = 1;
-        this.Lives = 3;
+        this.Lives = 5;
         this.zoomTransition = 0;
         this.levelSpeed = 24;
         this.timer1 = 0;
@@ -153,7 +155,7 @@ class Game{
         this.timer3 = 0;
         this.ufoTimer = 1;
         this.boss = null;
-        this.opacity = 0.2;
+
         this.Init(0);  
     }
 
@@ -161,8 +163,9 @@ class Game{
         this.Lives++;
         AUDIO.Play(6);
     }
-    PlayerDie(p){
-        if(this.Lives<=0){            
+    PlayerDie(p){        
+        this.Lives--;
+        if(this.Lives==0){            
             this.level=7;
             this.transition = TRANS[this.level].t;
             this.player.enabled = 0;
@@ -317,7 +320,13 @@ class Game{
         if(this.level == 1 || this.level == 3 || this.level == 4){
             if(this.transition==0){
                 if(!this.player.auto){
-                   this.ufoTimer=this.AlienGen(1, this.ufoTimer-dt, Util.RndI(0,3), Util.RndI(0,2), Util.RndI(3,6));
+                    var t = [1];
+                    if(this.level == 3){
+                        t = [0,1];
+                    }else if(this.level == 4){
+                        t = [0,1,2];
+                    }
+                    this.ufoTimer=this.AlienGen(Util.OneOf(t), this.ufoTimer-dt, Util.RndI(0,3), Util.RndI(0,2), Util.RndI(3,6));
                 }
             }
             else{
@@ -487,7 +496,7 @@ class Game{
         SFX.Box(0,0,SFX.bounds.w, 32,"rgba(100,100,100,0.2)");
         SFX.Text("1UP: " + Util.NumericText(this.player.score,5),40, 4, 3, 0, "#fff");
         SFX.Text("HIGH: " + Util.NumericText(this.high,5),380, 4, 3, 0, "#fff");
-        for (var i = 0; i < this.Lives; i++) {
+        for (var i = 0; i < this.Lives-1; i++) {
             SFX.Sprite(102+(i*20), 27, LIVES, ["#fff"], 1.4);
         }
 

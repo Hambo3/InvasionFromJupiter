@@ -169,7 +169,6 @@ class Player extends GameObject {
             }
             else{
                 this.auto = null;
-                GAME.Lives --;
             }         
         }
         else{
@@ -220,7 +219,7 @@ class Alien extends GameObject {
 
         this.width = 32;
         this.height = 32;
-
+        this.atype = t;
         this.damping = 0.99;
         this.targetPos;
         this.target;
@@ -228,8 +227,9 @@ class Alien extends GameObject {
         this.deadly = null;
 
         this.dpos;
+        this.points = 0;        
         this.Set(pos,t,m);
-        this.points = 100;
+
     }
     
     Collider (perp){
@@ -254,7 +254,8 @@ class Alien extends GameObject {
                 anim:{a:8,b:3},
                 shot:1,
                 sp:3,
-                sz:1
+                sz:0.9,
+                val:100
             },
             {
                 bod:[
@@ -265,7 +266,20 @@ class Alien extends GameObject {
                 anim:null,
                 shot:1,
                 sp:3,
-                sz:0.8
+                sz:0.85,
+                val:150
+            },
+            {
+                bod:[
+                    [1,[-16,-2,0,-10,16,-2],2,[-6,-10,6,-10,6,-7,-6,-7],1,[-16,2,0,10,16,2],2,[-6,7,6,7,6,10,-6,10],0,[-13,-2,13,-2,13,2,-13,2]]
+                ],
+                col:["#96e", "#54e", "#43e"],
+                hit:[-16,-2,-6,-7,-6,-10,6,-10,6,-7,16,-2,16,2,6,7,6,10,-6,10,-6,7,-16,2],
+                anim:null,
+                shot:1,
+                sp:3,
+                sz:0.8,
+                val:200
             }
         ];
         this.mtype = m;
@@ -279,6 +293,7 @@ class Alien extends GameObject {
         this.shotTimer = bodies[t].shot;
         this.speed = bodies[t].sp;
         this.size = bodies[t].sz;
+        this.points = bodies[t].val;
         this.dpos = p;
         this.pos = p;
         this.targetPos = null;
@@ -356,7 +371,7 @@ class Alien extends GameObject {
                     }
 
                     this.shotTimer = Util.Rnd(1)+1;
-                    AUDIO.Play(Util.RndI(2,5));
+                    AUDIO.Play(this.atype+2);
                 }
             }            
         }
@@ -426,6 +441,7 @@ class BossPanel extends GameObject {
             if(--this.strength == 0){
                 GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.srcCol, 5);
                 this.parent.LoseLife();
+                this.parent.target.score += 50;
                 super.Die();
             }
             else{
@@ -485,7 +501,7 @@ class BossPanel extends GameObject {
             GAME.gameObjects.Add(s);
         }
         else{
-            GAME.AlienGen(0, -1, 0, 0, 1,p);
+            GAME.AlienGen(2, -1, 0, 0, 1,p);
         }
     }
 }
@@ -583,6 +599,7 @@ class Boss extends GameObject {
                 }
                 this.countDown = 3;
                 AUDIO.Play(7);
+                this.target.score += 500;
             }            
         }
     }
@@ -678,7 +695,7 @@ class Block extends Scrollable{
     }
 
     Set(p){
-        var r = Util.RndI(2,6);
+        var r = Util.RndI(2,7);
         var c = Util.RndI(2,4);
         var hw = (c * 32)/2;
         var ht = r * 32;
@@ -980,15 +997,15 @@ class Dood{
         var ys = 3;
         var hd = this.Rate(1);
         var bs = this.Rate(2);
-        Util.PersonPos(b, bod, 0*xs,0*ys, xs+bs[0],ys+bs[1]);
-        Util.PersonPos(b, hed, 0*xs,-84*ys, xs+hd[0],ys+hd[1]);
+        Util.PersonPos(b, bod, 0,0, xs+bs[0],ys+bs[1]);
+        Util.PersonPos(b, hed, 0,-84*(ys+bs[1]), xs+hd[0],ys+hd[1]);
 
         var ey = this.Rate(1);
-        Util.PersonPos(b, eye, -6*xs,-86*ys, xs+ey[0],ys+ey[1]);
-        Util.PersonPos(b, eye, 6*xs,-86*ys, xs+ey[0],ys+ey[1]);
-        Util.PersonPos(b, nos, 0*xs,-84*ys, xs,ys);
-        Util.PersonPos(b, tlip, 0*xs,-74*ys, xs,ys);
-        Util.PersonPos(lp, blip, 0*xs,-74*ys, xs,ys);
+        Util.PersonPos(b, eye, -6*xs,-86*(ys+bs[1]), xs+ey[0],ys+ey[1]);
+        Util.PersonPos(b, eye, 6*xs,-86*(ys+bs[1]), xs+ey[0],ys+ey[1]);
+        Util.PersonPos(b, nos, 0*xs,-84*(ys+bs[1]), xs,ys);
+        Util.PersonPos(b, tlip, 0*xs,-74*(ys+bs[1]), xs,ys);
+        Util.PersonPos(lp, blip, 0*xs,-74*(ys+bs[1]), xs,ys);
 
         var firsts = ["BILL","MARGARET","TONY","GRAHAM","MARCY","MR","MISS","MIKE"]
         var lasts = ["CHAMBERLAIN", "BRAITHWAITE", "MASTERS" ];
