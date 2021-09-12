@@ -6,7 +6,7 @@ body {
 }
 
 #canvasBody canvas {
-  /* cursor: none; */
+  cursor: none;
   image-rendering:optimizeSpeed;
   height: 100%;
   display: block;

@@ -1,9 +1,10 @@
 class Title{
 
-    constructor()
+    constructor(skip)
     {
+        this.skip = skip;
         this.mode = 1;
-        this.col = new Color("#555");
+        this.col = new Color("#555",0);
         this.cols = [new Color("#f00"),new Color("#ff0")];
         this.doods = [];
 
@@ -11,14 +12,29 @@ class Title{
 
         this.scene = 0;
         this.sceneTimer = 6;
+        
         this.scenes=[
-            {nr:0,hd:"OBJECTS SEEN IN SKY",sb:"BLETCHLEY RESIDENTS CONFUSED"},
-            {nr:1,hd:"OBJECTS SEEN IN SKY",sb:"FREE DOGHNUTS AT JOES CAFE"}
+            {nr:0,mn:"BREAKING NEWS",hd:"OBJECTS SEEN IN SKY OVER BLETCHLEY",sb:"RESIDENTS COMPLAIN",sp:"OBJECTS SEEN IN THE SKY OVER BLETCHLEY LAST NIGHT"},
+            {nr:0,mn:0,hd:0,sb:0,sp:"MANY RESIDENTS ARE CONCERNED"},
+            {nr:0,mn:0,hd:0,sb:0,sp:"WE GO NOW LIVE TO BLETCHLEY"},
+            {nr:2,mn:0,hd:0,sb:0,sp:"WE SAW IT LARIGHT BLAH BLAH"},
+            {nr:3,mn:0,hd:0,sb:0,sp:"BIG GREEN THINGS THEY WHERE"},
+            {nr:0,mn:"JUST IN",hd:"JUPITER INVADES",sb:0,sp:null}
         ];
 
+        this.doods.push(new Dood(new Vector2(400,500),1));//news guy
+        this.doods.push(new Dood(new Vector2(400,500),1,"EXPERT"));//exp1
+
         for (let i = 0; i<2; i++) {
-            this.doods.push(new Dood(new Vector2(400,500)));            
+            this.doods.push(new Dood(new Vector2(400,500),0,Util.OneOf(["RESIDENT","NEIGHBOUR","WITNESS"])));
         }
+
+        this.current = {nr:0,mn:0,hd:0,sb:0,sp:0};
+        this.current.nr = this.scenes[0].nr;
+        this.current.mn = this.scenes[0].mn;
+        this.current.hd = this.scenes[0].hd;
+        this.current.sb = this.scenes[0].sb;
+        this.current.sp = this.scenes[0].sp;
     }
 
     Events(dt){
@@ -26,11 +42,11 @@ class Title{
 
     Update(dt)
     {
-        if(this.timer>=6 && Input.Fire1() ) {
+        if(this.timer>= (this.skip ? 2 : 10) && Input.Fire1() ) {
             this.mode = 2;
         }
 
-        if(this.timer < 6){
+        if(this.timer < 20){
             this.timer += dt;
         }
 
@@ -39,13 +55,19 @@ class Title{
         {
             this.sceneTimer = 6;
             this.scene++;
-            if(this.scene>1)
+            if(this.scene==this.scenes.length)
             {
                 this.scene=0;
             }
+
+            this.current.nr = this.scenes[this.scene].nr;
+            this.current.mn = this.scenes[this.scene].mn || this.current.mn;
+            this.current.hd = this.scenes[this.scene].hd || this.current.hd;
+            this.current.sb = this.scenes[this.scene].sb || this.current.sb;
+            this.current.sp = this.scenes[this.scene].sp;
         } 
 
-        this.doods[this.scenes[this.scene].nr].Update(dt);
+        this.doods[this.current.nr].Update(dt);
     }
 
     Render()
@@ -56,33 +78,45 @@ class Title{
 
         if(this.timer>1)
         {
-            this.doods[this.scenes[this.scene].nr].Render();
+            this.doods[this.current.nr].Render();
 
             SFX.Box(0,h-40,w, 40,"#777");
-            SFX.Text(this.scenes[this.scene].sb,20,h-30,3, 0, "#000");
+            SFX.Text(this.current.sb,20,h-30,3, 0, "#000");
 
             SFX.Box(0,h-140,w, 100,"#ccc");
-            SFX.Text(this.scenes[this.scene].hd,20,h-130,5, 0, "#000");
+            SFX.Text(this.current.hd,20,h-130,5, 0, "#000");
 
             SFX.Box(0,h-180,260, 40,"#eee");
-            SFX.Text("BREAKING NEWS",20,h-170,4, 0, "#000");  
-        }
+            SFX.Text(this.current.mn,20,h-170,4, 0, "#000");  
 
-        if(this.timer > 3)
-        {
-            for (let i = 0; i < 2; i++) {
-                var c = this.col.Clone().Lerp(this.cols[i], 
-                    Util.Remap(3, 6, 0,1, this.timer)).RGBA(); 
-                SFX.Text("JUPITERS",30-i,10-i,6, 1, c);
-                SFX.Text("INVASION",40-i,54-i,6, 1, c);
-                SFX.Text("ON BLETCHLEY",50-i,100-i,4, 1, c);
-                SFX.Text("FROM",70-i,134-i,4, 1, c);
-                SFX.Text("SPACE",60-i,170-i,8, 1, c);   
+            if(this.current.sp)
+            {
+                SFX.Text("["+this.current.sp+"]",100,h-280,4, 0, "#ccc");  
             }
         }
 
-        if(this.timer>=6){
-            SFX.Text("FIRE TO START [K]",320,440,4, 0, this.cols[0]); 
+         
+        var a = this.skip>0 ? [1,3] : [3,9];       
+        var b = this.skip>0 ? [2,4] : [8,12]; 
+        for (let i = 0; i < 2; i++) {
+            var c = this.col.Clone().Lerp(this.cols[i], 
+                Util.Remap(a[0],a[1], 0,1, this.timer)).RGBA(); 
+
+            SFX.Text("INVASION",30-i,10-i,6, 1, c);
+            SFX.Text("FROM",80-i,54-i,4, 1, c);
+            SFX.Text("JUPITER",40-i,86-i,7, 1, c);
+
+            var c2 = this.col.Clone().Lerp(this.cols[i], 
+                Util.Remap(b[0],b[1], 0,1, this.timer)).RGBA();  
+
+            SFX.Text("IN",90-i,136-i,4, 1, c2);
+            SFX.Text("SPACE",60-i,170-i,8, 1, c2);  
+
+        }
+
+
+        if(this.timer>= a[1] ){
+            SFX.Text("FIRE TO START [K]",20,300,4, 0, this.cols[0]); 
         }
     }
 }
@@ -97,6 +131,9 @@ class Game{
         this.gameObjects = new ObjectPool(); 
         this.particles = new ObjectPool(); 
 
+        this.bossCol1 = new Color("#071");
+        this.bossCol2 = new Color("#a11");
+
         this.player = new Player(new Vector2(-2*32,24*32));
         this.player.auto = new Vector2(16*32,24*32);
         this.gameObjects.Add(this.player);
@@ -107,6 +144,7 @@ class Game{
         this.levelDistance = TRANS[this.level].d;
         this.transition = TRANS[this.level].t;
  
+        MAP.scale = 1;
         this.Lives = 3;
         this.zoomTransition = 0;
         this.levelSpeed = 24;
@@ -119,12 +157,15 @@ class Game{
         this.Init(0);  
     }
 
+    Extra(){
+        this.Lives++;
+        AUDIO.Play(6);
+    }
     PlayerDie(p){
-
-        //this.Lives --;
-        if(this.Lives==0){
-            this.transition = 200;
+        if(this.Lives<=0){            
             this.level=7;
+            this.transition = TRANS[this.level].t;
+            this.player.enabled = 0;
         }
 
         var b = MAP.ScreenBounds();
@@ -195,10 +236,11 @@ class Game{
         return t;
     }
 
+    //type, timer, movementstyle, wave, num, pos
     AlienGen(type, t, m, w, n, pos){
         if(t < 0 && this.levelDistance > 150)
         {
-            t = Util.Rnd(2)+2;
+            t = Util.Rnd(2)+Util.Remap(0, 5, 5,3, this.level);
             var b = MAP.ScreenBounds();
             n = n || Util.RndI(3,6);
             var y = pos ? pos.y : Util.RndI(b.Min.y+(2*32), b.Max.y-((n*2)*32));
@@ -258,7 +300,9 @@ class Game{
                                 new Vector2(b.Max.x + 100, b.Max.y-32), this.levelSpeed*0.7);
 
                 if(!this.player.auto){
-                   this.ufoTimer=this.AlienGen(Util.RndI(0,2), this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
+                   this.ufoTimer=this.AlienGen(0, this.ufoTimer-dt, 
+                    this.levelDistance>1500 ? 1 : Util.RndI(0,2), 
+                        Util.RndI(0,2), Util.RndI(3,6));
                 }
             }  
 
@@ -270,10 +314,10 @@ class Game{
             this.timer1 = this.ObjectGen(C.ASSETS.STAR, Star, this.timer1-dt, 0, 0.3, 
                         new Vector2(b.Max.x + 100, Util.RndI(b.Min.y, b.Max.y)), Util.RndI(0,3));
         }
-        if(this.level == 1 || this.level == 3){
+        if(this.level == 1 || this.level == 3 || this.level == 4){
             if(this.transition==0){
                 if(!this.player.auto){
-                   this.ufoTimer=this.AlienGen(1, this.ufoTimer-dt, Util.RndI(0,2), Util.RndI(0,2), Util.RndI(3,6));
+                   this.ufoTimer=this.AlienGen(1, this.ufoTimer-dt, Util.RndI(0,3), Util.RndI(0,2), Util.RndI(3,6));
                 }
             }
             else{
@@ -292,6 +336,7 @@ class Game{
                 MAP.scale = 1.5;
                 this.gameObjects.Remove([C.ASSETS.ENEMY]);
                 this.particles.Clear();
+                this.boss.armed=1;
             }
 
             //if(this.transition==1){
@@ -314,6 +359,7 @@ class Game{
             {
                 MAP.scale = 1;
                 this.zoomTransition = 0;
+                this.Extra();
             }
 
             if(this.zoomTransition == 0 && this.transition==0){
@@ -330,11 +376,12 @@ class Game{
 
         }
         if(this.level == 5){
-            if(MAP.scale == MAP.maxScale)
+            if(this.zoomTransition > 0 && MAP.scale == MAP.maxScale)
             {
                 this.zoomTransition = 0;
                 this.gameObjects.Remove([C.ASSETS.ENEMY]);
                 this.particles.Clear();
+                this.boss.armed=1;
             }
 
             if(!this.boss){
@@ -368,36 +415,19 @@ class Game{
 
     Update(dt)
     {
-        //#region DEBUG
-        DEBUG.Print("Z",MAP.scale+" "+MAP.minScale+" "+MAP.maxScale);
-        DEBUG.Print("L",this.level);
-        DEBUG.Print("T", this.transition);
-        DEBUG.Print("D", this.levelDistance);
-        DEBUG.Print("GO", this.gameObjects.Count(true));
-        DEBUG.Print("P", this.particles.Count(true));
-
-        DEBUG.Print("EM", this.gameObjects.Count(false, [C.ASSETS.ENEMY]));
-        if(this.boss){
-        DEBUG.Print("BS", "["+this.boss.targetPos.x + "][" + this.boss.targetPos.y+"]");
+        //#endregion DEBUG
+        if(Input.IsSingle('KeyI') ) {
+            this.levelDistance = 250;          
         }
-
-        if(Input.IsDown('KeyX') ) {
-            MAP.Zoom(0.01);
-            this.offset = MAP.ScrollTo(this.player.pos, this.scrollRate);
-        }
-        else if(Input.IsDown('KeyZ') ) {
-            MAP.Zoom(-0.01);	
-            this.offset = MAP.ScrollTo(this.player.pos, this.scrollRate);
-        }
-        else if(Input.IsSingle('KeyI') ) {
-            this.levelDistance = 500;          
+        if(Input.IsSingle('KeyO') ) {
+            this.level++;          
         }
         //#endregion DEBUG
         var b = MAP.ScreenBounds();
 
         if(!this.player.enabled)
         {
-            if(this.gameObjects.Count(false, [C.ASSETS.ENEMY]) == 0 && (!this.boss || this.boss.pos.x > b.Min.x + ((b.Max.x - b.Min.x)/2) ) )
+            if(this.Lives >0 && this.gameObjects.Count(false, [C.ASSETS.ENEMY]) == 0 && (!this.boss || this.boss.pos.x > b.Min.x + ((b.Max.x - b.Min.x)/2) ) )
             {
                 this.player.enabled = 1;
             }
@@ -461,12 +491,28 @@ class Game{
             SFX.Sprite(102+(i*20), 27, LIVES, ["#fff"], 1.4);
         }
 
+        if(this.boss)
+        {
+            var c2 = this.bossCol1.Clone().Lerp(this.bossCol2, 
+                Util.Remap(this.boss.maxLife,this.boss.dieAt, 0,1, this.boss.lives)).RGBA(); 
+            SFX.Text("BOSS:",380, 32, 3, 0, "#fff");
+            SFX.Box(440,32,
+                Util.Remap(this.boss.maxLife,this.boss.dieAt, 100,0, this.boss.lives)
+                , 15, c2);
+        }
+        //DEBUG
+        SFX.Text("LF: " + this.Lives,40, 80, 2, 0, "#ff0");
+        SFX.Text("LV: " + this.level,40, 100, 2, 0, "#ff0");
+        SFX.Text("LD: " + this.levelDistance,40, 120, 2, 0, "#ff0");
+        SFX.Text("TR: " + this.transition,40, 140, 2, 0, "#ff0");
+        //DEBUG
         if(this.transition){
-            var d = 800;
+            var d = 896;
             var txt = TRANS[this.level];
-            SFX.Text(txt.title,(d/2)-((txt.title.length*(4*4))/2),200,4,1,"#ff0"); 
+            SFX.Text(txt.title,(d/2)-((txt.title.length*(5*4))/2),200,4,1,"#ff0"); 
             for (var i = 0; i < txt.info.length; i++) {
-                SFX.Text(txt.info[i],(d/2)-((txt.info[i].length*(4*2))/2),
+                var tx = txt.info[i].replace("###", Util.NumericText(this.player.score,5));
+                SFX.Text(tx, (d/2)-((tx.length*(4*2))/2),
                 240 + (i*16),2,0,"#ff0");
             }
         }

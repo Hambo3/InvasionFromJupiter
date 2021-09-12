@@ -22,75 +22,95 @@ var C = {
 }
 
 var TRANS = [
-    {t:200, d:3000, z:0,title:"EARTH",info:["RESCUE HUMANOIDS", "BEAM [N]"]},
-    {t:500, d:1000, z:0, title:"SPACE",info:["SAVED"]},
-    {t:500, d:99900, z:0.001, title:"BOSS",info:["KILL THE BOSS"]},
-    {t:500, d:1000, z:-0.002, title:"JUPITER",info:["PROCEDE TO JUPITER"]},
-    {t:500, d:500, z:0, title:"SPACE",info:[]},
-    {t:500, d:99900, z:0.003, title:"BOSS",info:["KILL THE BOSS"]},
-    {t:800, d:3000, z:-0.003, title:"JUPITER IS DESTROYED",info:["YOUR A REAL HERO NOW"]},
-    {t:800, d:3000, z:-0.003, title:"GAME OVER",info:["SOME GALACTIC DEFENDER YOU ARE"]},
+    {t:200, d:3000, z:0,title:"EARTH",info:["BLETCHLEY","SOME TIME AFTER LUNCH"]},
+    {t:500, d:3000, z:0, title:"SPACE",info:["PROCEDE INTO SPACE","DESTROY THE JUPITER FOE"]},
+    {t:500, d:99900, z:0.001, title:"WARNING",info:["THE JUPITARIAN SPACE COLONEL APPROACHES"]},
+    {t:500, d:3000, z:-0.002, title:"JUPITER",info:["PROCEDE TO JUPITER","[EXTRA LIFE]"]},
+    {t:500, d:3000, z:0, title:"SPACE",info:["ONCE AGAIN"]},
+    {t:500, d:99900, z:0.003, title:"WARNING",info:["DEFEAT THE THE JUPITARIAN SPACE GENERAL"]},
+    {t:800, d:3000, z:-0.003, title:"EARTH IS SAVED",info:["YOUR A REAL HERO NOW"]},
+    {t:450, d:3000, z:-0.003, title:"GAME OVER",info:["SOME GALACTIC DEFENDER YOU ARE","YOU SCORED ###"]},
 ];
 
 var SOUNDS = [
-    [,,1223,.06,.24,.06,2,.25,-0.5,11.3,134,-0.01,.06,,4,,.01,.34,.06,.03],
-    [2.01,,469,.01,.04,.01,2,1.49,-4.3,-0.7,,,,.2,,,.13,.94,.05],
-    [1.72,,973,,.11,.81,3,2.1,,.5,,,,.8,,.2,.34,.83,.07,.08]
+    [,,1223,.06,.24,.06,2,.25,-0.5,11.3,134,-0.01,.06,,4,,.01,.34,.06,.03],//laser
+    [1.72,,973,,.11,.81,3,2.1,,.5,,,,.8,,.2,.34,.83,.07,.08],//eplode    
+    [2.01,,469,.01,.04,.01,2,1.49,-4.3,-0.7,,,,.2,,,.13,.94,.05],//alien shot
+    [,,665,.01,.06,.09,3,1.71,-5.3,,,,.06,,,,,.73,.04],//alien shot
+    [,,690,.01,.07,.05,,1.3,-6.4,,,,,,,,,.99,.01],//alien shot
+    [1.21,,470,.02,.02,.21,1,.47,6.4,,,,,,,,.03,.91,.1],//alarm
+    [1.01,,305,.09,.27,.82,1,1.02,3.9,7.7,-6,.07,.09,,,,,.55,.01],//extra
+    [1.55,,985,,.01,.67,1,.58,.5,.1,,,,.4,,.4,.03,.64,.08]//boss explode
 ];
 var LIVES = [0,[-6,-4,-3,-2,2,-2,6,-1,6,1,-1,1,-6,1]];
 
 var BOSS1 = [
-    'gfaaaaaaabbddddd',
-    'eaaaaaaabbbccc00',
-    'aaaaaaaabbbcccdd',
-    'aaaabbbbbbbbbb00',
-    '00hbbcccccbbbb00',
+    'gfaaaawaabbddddd',
+    'eaaaaaaalbbccc00',
+    'aaaaaaalbbbcccdd',
+    'aaalbbbbbbbbbb00',
     'aaabbcccccbbbb00',
-    'bbbbbccccc000ddc',
-    'aaaaacccccdddddc',
-    'daaaabbbbbbbbddc',
+    'aalbbcccccbbbq00',
+    'tubbbccccc000pdc',
+    'aaaaacccccrrrrdc',
+    'waaaabbbbbbbbsdc',
     'aaaaabbbbbbbb000',
-    'daaaabbbbbbbb000',
-    'aaabaddbbbbbbbdd',
-    '0aaaadd000dddddc',
-    '0aabaddccccccddc',
-    '0aaaaddcccccc000',
+    'baaaabbbbbbbb000',
+    'aaabaddbbbbbbpdc',
+    'maaaadd000rrrrdc',
+    '0aavaddccccccsdc',
+    '0maaaddcccccc000',
 ];
 
 var BOSS2 = [
-    '0000000000000dddd000',
-    '000000000000ddddd000',
-    '00000000000dddd00000',
-    'gfaaaaaaabbdddddd000',
-    'eaaaaaaabbbccc000000',
-    'aaaaaaaabbbcccdddddd',
-    'aaaabbbbbbbbbb000000',
-    'hhabbcccccbbbb000000',
+    '000000000000jiddd000',
+    '00000000000jhdddd000',
+    '00000000000kddd00000',
+    'gfaaaawaabbddddd0000',
+    'eaaaaaaalbbccc000000',
+    'aaaaaaalbbbcccdddddd',
+    'aaalbbbbbbbbbb000000',
     'aaabbcccccbbbb000000',
-    'bbbbbccccc000ddc0000',
-    'aaaaacccccdddddc0000',
-    'daaaabbbbbbbbddc0000',
+    'aalbbcccccbbbq000000',
+    'tubvbccccc000pdc0000',
+    'aaaaacccccrrrrdc0000',
+    'waaaabbbbbbbbsdc0000',
     'aaaaabbbbbbbb0000000',
-    'daaaabbbbbbbb0000000',
-    'aaabaddbbbbbbbddc000',
-    '0aaaadd000dddddc0000',
-    '0aabaddccccccddc0000',
-    '0aaaaddcccccc0000000',
-    '00ddddddddddd0000000',
-    '00000d0d00d000000000',
-    '00000d0d000000000000'
+    'waaaabbbbbbbb0000000',
+    'aaabaddbbbbbbpdc0000',
+    'maaaadd000rrrrdc0000',
+    '0aavaddccccccsdc0000',
+    '0maaaddcccccc0000000',
+    '00ndddddddddd0000000',
+    '00000o0o00w000000000',
+    '00000000000000000000'
 ];
 
 var BDATA = [
     [],
-    [0,1],
-    [0,2],
-    [0,3],
-    [0,4],
-    [1,1],
-    [2,1],
-    [3,1],
-    [0,1,4,4]
+    [1,0],
+    [2,0],
+    [3,0],
+    [4,0],//d
+    [1,1],//e
+    [1,2],//f
+    [1,3],//g
+    [4,5],//h
+    [4,2],//i
+    [4,3],//j
+    [4,1],//k
+    [1,6,2,7],//l
+    [1,8],//m
+    [4,8],//n
+    [4,9,4,10,4,11,7,12],//o
+    [5,7],//p
+    [2,6],//q
+    [5,0],//r,
+    [5,8],//s
+    [5,0,7,13],//t
+    [5,0,7,14],//u
+    [3,0,4,15,6,16],//v
+    [3,0,4,15,7,16]//w
 ];
 
 var BCELL = [
@@ -98,7 +118,19 @@ var BCELL = [
     [-16,16,-15,8,-13,3,-9,-2,7,-16,16,-16,16,16,-12,16],
     [-16,7,-5,-4,-1,-8,6,-13,10,-15,16,-16,16,16,-16,16],
     [16,7,16,16,7,16],
-    [-13,-13,13,-13,13,13,-13,13]
+    [-13,-13,13,-13,13,13,-13,13],
+    [7,-16,16,-16,16,16,-16,16,-16,7],
+    [-16,-16,16,-16,-16,16],//6
+    [-16,16,16,-16,16,16],//7
+    [-16,-16,16,-16,16,16],//8
+    [-16,-16,16,-16,2,-11,2,16,-2,16,-2,-11],
+    [-2,16,2,16,7,18,12,22,15,26,-15,26,-12,22,-7,18],
+    [-2,37,2,37,7,35,12,32,15,29,-15,29,-12,33,-7,36],
+    [-13,26,13,26,13,29,-13,29],
+    [-16,-13,16,-13,16,13,-16,13],//13
+    [-16,-13,13,-13,13,13,-16,13],
+    [-16,-4,-12,-12,-4,-16,4,-16,12,-12,16,-4,16,4,12,12,4,16,-4,16,-12,12,-16,4],
+    [-12,-4,-9,-9,-4,-12,4,-12,9,-9,12,-4,12,4,9,9,4,12,-4,12,-9,9,-12,4]
 ];
 
 var FONT = {    

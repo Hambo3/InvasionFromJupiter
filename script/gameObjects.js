@@ -133,10 +133,10 @@ class Player extends GameObject {
     }
     
     Die(){
-        if(!this.auto){
+        if(!this.auto && GAME.level < 6){
             GAME.ParticleGen(this.pos, 3, this.col, 3);
             GAME.PlayerDie(this);
-            AUDIO.Play(2);
+            AUDIO.Play(1);
         }
     }
     Collider (perp){
@@ -252,7 +252,7 @@ class Alien extends GameObject {
                 col:["#888","#777","#AAA"],
                 hit:[-17,10,-10,4,-10,-4,-3,-8,3,-8,10,-4,10,4,17,10],
                 anim:{a:8,b:3},
-                shot:0,
+                shot:1,
                 sp:3,
                 sz:1
             },
@@ -356,7 +356,7 @@ class Alien extends GameObject {
                     }
 
                     this.shotTimer = Util.Rnd(1)+1;
-                    AUDIO.Play(1);
+                    AUDIO.Play(Util.RndI(2,5));
                 }
             }            
         }
@@ -376,7 +376,7 @@ class BossPanel extends GameObject {
         super(pos, C.ASSETS.BOSSPART);
         
         this.srcCol = [];
-        this.col = ["#ccc","#aaa","#999","#777","#555","#f00"];
+        this.col = ["#ccc","#aaa","#999","#777","#555","#444","#f00","#49c"];
         for (var i = 0; i < this.col.length; i++) {
             this.srcCol.push(new Color(this.col[i]));
         }
@@ -387,7 +387,9 @@ class BossPanel extends GameObject {
         this.height = 32;
 
         this.enabled = 1;
-        this.shotTimer = 1;
+        this.shotTimer = Util.Rnd(3)+5;
+        this.shotMax = GAME.Level<4 ? 3 : 5;
+        this.shotCount = this.shotMax;
         this.func = func;
         this.countDown = 0;   
         this.strength = 5;
@@ -420,13 +422,15 @@ class BossPanel extends GameObject {
     }
 
     Die(){
-        if(--this.strength == 0){
-            GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.srcCol, 5);
-            this.parent.LoseLife();
-            super.Die();
-        }
-        else{
-            this.col = this.cols[this.strength];
+        if(this.parent.armed){
+            if(--this.strength == 0){
+                GAME.ParticleGen(this.pos.Clone().Add(this.center), 3, this.srcCol, 5);
+                this.parent.LoseLife();
+                super.Die();
+            }
+            else{
+                this.col = this.cols[this.strength];
+            }
         }
 
     }
@@ -451,8 +455,16 @@ class BossPanel extends GameObject {
             {
                 this.shotTimer -= dt;
                 if(this.shotTimer < 0 ){
-                    this.Launch();
-                    this.shotTimer = Util.Rnd(1)+1;
+                    if(!this.parent.target.auto && this.parent.armed){
+                        this.Launch();
+                    }
+                    this.shotCount--;
+                    this.shotTimer = this.shotCount 
+                                ? (this.func == 1) ? 0.2: 0.7
+                                : Util.Rnd(3)+5;
+                    if(this.shotCount==0){
+                        this.shotCount = this.shotMax;
+                    }
                 }
             }            
         }  
@@ -461,8 +473,6 @@ class BossPanel extends GameObject {
     }
 
     Launch(){
-        var s = GAME.gameObjects.Is( this.func == 1 ? C.ASSETS.EMYSHOT : C.ASSETS.ENEMY );
-
         var d = new Vector2();
         var basePos = this.pos.Clone();
         basePos.Add(this.center);
@@ -470,22 +480,12 @@ class BossPanel extends GameObject {
         d.Normalize(1);
 
         var p = basePos.Add(d.Multiply(1));
-        if(s){
-            if(this.func == 1){
-                s.Set(p, d );
-            }
-            else{
-                s.Set(p, 0, 0 );
-            }
+        if(this.func == 1){
+            var s = new Bullet(p, C.ASSETS.EMYSHOT, 80, d );
+            GAME.gameObjects.Add(s);
         }
         else{
-            if(this.func == 1){
-                s = new Bullet(p, C.ASSETS.EMYSHOT, 128, d );
-                GAME.gameObjects.Add(s);
-            }
-            else{
-                GAME.AlienGen(0, -1, 0, 1,p);
-            }
+            GAME.AlienGen(0, -1, 0, 0, 1,p);
         }
     }
 }
@@ -512,10 +512,13 @@ class Boss extends GameObject {
         this.deadly = null;
         this.enabled = 1;
         this.shotTimer = 1;
-        this.lives = this.Init(template);
-        this.dieAt = this.lives - 10; //??
+        this.maxLife = this.Init(template);
+        this.lives = this.maxLife;
+        this.dieAt = this.lives * 0.8;
         this.countDown = 0;
         this.mTimer = Util.Rnd(2)+3;
+        this.armed = 0;
+        this.warn=0;
     }
     
     Init(t){
@@ -530,8 +533,8 @@ class Boss extends GameObject {
                 if(q > 0){
                     var pt = [];
                     for(var b = 0; b < BDATA[q].length; b+=2) {
-                        var d = BCELL[ BDATA[q][b] ];
-                        var c = BDATA[q][b+1];
+                        var d = BCELL[ BDATA[q][b+1] ];
+                        var c = BDATA[q][b];
 
                         var dd = [];
                         for(var k = 0; k < d.length; k+=2) {
@@ -540,13 +543,13 @@ class Boss extends GameObject {
                         pt.push(c);
                         pt.push(dd);
                     }
-
+                    var f = q==22 ? 2 : q==23 ? 1 : 0;
                     var p = GAME.gameObjects.Is( C.ASSETS.BOSSPART);
                     if(p){
-                        p = new BossPanel(this.pos, pt, 0, this);
+                        p = new BossPanel(this.pos, pt, f, this);
                     }
                     else{
-                        p = new BossPanel(this.pos, pt, 0, this);
+                        p = new BossPanel(this.pos, pt, f, this);
                         GAME.gameObjects.Add(p);
                     }
                     
@@ -579,11 +582,19 @@ class Boss extends GameObject {
                     ps[i].Destruct();
                 }
                 this.countDown = 3;
+                AUDIO.Play(7);
             }            
         }
     }
 
     Update(dt){
+        if(!this.armed){
+            this.warn+=dt;
+            if(this.warn>1.5){
+                AUDIO.Play(5);
+                this.warn=0;
+            }
+        }
         if(this.countDown > 0)
         {
             this.countDown -= dt;
@@ -600,22 +611,24 @@ class Boss extends GameObject {
 
             this.velocity.Add(accel);
         } 
-        this.mTimer-=dt;  
+        if(this.armed){
+            this.mTimer-=dt;  
 
-        if(this.mTimer < 0)
-        {
-            var b = MAP.ScreenBounds();  
-            var cw = (b.Max.x-b.Min.x)/4;
-            var ch = (b.Max.y-b.Min.y)/4;
-            this.targetPos = new Vector2(b.Min.x + (Util.RndI(1,4)*cw), 
-                b.Min.y+(Util.RndI(1,4)*ch));   
-
-            if(!this.target.enabled)   
+            if(this.mTimer < 0)
             {
-                this.targetPos.x = b.Min.x + (3 *cw);
-            }          
+                var b = MAP.ScreenBounds();  
+                var cw = (b.Max.x-b.Min.x)/4;
+                var ch = (b.Max.y-b.Min.y)/4;
+                this.targetPos = new Vector2(b.Min.x + (Util.RndI(1,4)*cw), 
+                    b.Min.y+(Util.RndI(1,4)*ch));   
 
-            this.mTimer = Util.Rnd(2)+3;
+                if(!this.target.enabled)   
+                {
+                    this.targetPos.x = b.Min.x + (3 *cw);
+                }          
+
+                this.mTimer = Util.Rnd(2)+3;
+            }
         }
 
         super.Update(dt);
@@ -718,7 +731,7 @@ class Hill extends Scrollable{
     Set(p, i){
         var rt = Util.RndI(1,4)*32;
         var lt = Util.RndI(1,4)*32;
-        var ht = Util.RndI(2,12)*32;
+        var ht = Util.RndI(2,11)*32;
         this.width = rt+lt;
         this.height = ht;
         this.size = 1;
@@ -942,7 +955,7 @@ class Trail{
 
 class Dood{
 
-    constructor(pos){
+    constructor(pos,t, title){
         this.pos = pos;
         this.col = ["#000","#eee",
         "#999","#888","#777",//face
@@ -976,6 +989,11 @@ class Dood{
         Util.PersonPos(b, nos, 0*xs,-84*ys, xs,ys);
         Util.PersonPos(b, tlip, 0*xs,-74*ys, xs,ys);
         Util.PersonPos(lp, blip, 0*xs,-74*ys, xs,ys);
+
+        var firsts = ["BILL","MARGARET","TONY","GRAHAM","MARCY","MR","MISS","MIKE"]
+        var lasts = ["CHAMBERLAIN", "BRAITHWAITE", "MASTERS" ];
+        this.name = t ? Util.OneOf(firsts) + " " + Util.OneOf(lasts) : Util.OneOf(firsts);
+        this.title = title;
         this.body = [b];
         this.altbody = [lp];
         this.lip = 0;
@@ -999,5 +1017,13 @@ class Dood{
         SFX.Sprite(this.pos.x, this.pos.y, this.body[0], this.col, 1);
 
         SFX.Sprite(this.pos.x, this.pos.y+this.lip, this.altbody[0], this.col, 1);
+
+        if(this.name){
+            SFX.Text(this.name, this.pos.x-100, this.pos.y-120,3, 0, "#ccc");
+        }
+        if(this.title)
+        {
+            SFX.Text(this.title, this.pos.x-100, this.pos.y-100,3, 0, "#ccc");
+        }
     }
 }

@@ -31,9 +31,6 @@ var GFX;
 var SFX;
 var MAP;
 var AUDIO;
-var MUSIC;
-
-var DEBUG;
 
 var map={
 	size:{
@@ -71,9 +68,6 @@ function Start(canvasBody)
 		SFX = new Render(MAP.screenCtx, map.size.screen.width* map.size.tile.width, 
 			map.size.screen.height* map.size.tile.height);	
 		AUDIO = new TinySound();
-		MUSIC = new TinyMusic();
-
-		DEBUG = new DebugEdit(MAP.screenCtx, 400, 600 ,'#fff');
 
 		init();
 	}
@@ -84,8 +78,7 @@ function init()
   var now = timestamp();	
 	lastTime = now;
 
-	//gameAsset = new Game();
-	GAME = new Title();
+	GAME = new Title(0);
 
 	FixedLoop();  
 }
@@ -95,39 +88,13 @@ function SlowMo(mo){
 }
 
 function FixedLoop(){
-	//TESTOUT STUFF
-	//  if(Input.IsSingle('KeyP') ) {
-	//  	AUDIO.Play();
-	// 	console.log("play");
-	//  }
-
-	if(Input.IsSingle('KeyY') ) {
-		slowMo+=1;
-		SlowMo(slowMo);		
-	}
-	else if(Input.IsSingle('KeyT') ) {
-		if(slowMo-1 > 0){
-			slowMo-=1;
-			SlowMo(slowMo);
-		}
-	}
-
-	// if(Input.IsDown('KeyX') ) {
-	// 	MAP.Zoom(0.01);
-	// }
-	// else if(Input.IsDown('KeyZ') ) {
-	// 	MAP.Zoom(-0.01);	
-	// }
-	//TESTOUT STUFF
-
 	if(GAME.mode == 2)
 	{
 		GAME = new Game();
-		//MUSIC.Play();
 	}
 	else if(GAME.mode == 4)
 	{
-		GAME = new Title();
+		GAME = new Title(1);
 	}
 
 	now = timestamp();
@@ -155,8 +122,6 @@ function update(dt) {
 
 function render() {
 	GAME.Render();
-
-	DEBUG.Render(true,true);
 };
 
 onkeydown = function(e)
