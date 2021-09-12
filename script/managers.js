@@ -15,27 +15,53 @@ class Title{
         this.sceneTimer = 6;
         
         this.scenes=[
-            {nr:0,mn:"BREAKING NEWS",hd:"OBJECTS SEEN IN SKY OVER BLETCHLEY",sb:"RESIDENTS COMPLAIN",sp:"OBJECTS SEEN IN THE SKY OVER BLETCHLEY LAST NIGHT"},
-            {nr:0,mn:0,hd:0,sb:0,sp:"MANY RESIDENTS ARE CONCERNED"},
-            {nr:0,mn:0,hd:0,sb:0,sp:"WE GO NOW LIVE TO BLETCHLEY"},
-            {nr:2,mn:0,hd:0,sb:0,sp:"WE SAW IT LARIGHT BLAH BLAH"},
-            {nr:3,mn:0,hd:0,sb:0,sp:"BIG GREEN THINGS THEY WHERE"},
-            {nr:0,mn:"JUST IN",hd:"JUPITER INVADES",sb:0,sp:null}
+            {nr:0,mn:"BREAKING NEWS",hd:"OBJECTS SEEN IN SKY OVER BLETCHLEY",sb:"RESIDENTS COMPLAIN",sp:"REPORTS ARE COMING IN OF STRANGE OBJECTS",
+                        ex:0,exp:0,ext:0},
+            {nr:0,mn:0,hd:0,sb:0,sp:"SEEN IN THE SKY YESTERDAY OVER BLETCHLEY",
+                        ex:0,exp:0,ext:0},
+            {nr:0,mn:0,hd:0,sb:0,sp:"WE ASKED AN EXPERT FOR AN OPINION",
+                        ex:0,exp:0,ext:0},
+            {nr:0,mn:0,hd:0,sb:0,sp:"WHAT CAN YOU TELL US",
+                        ex:1,exp:1,ext:0},
+            {nr:0,mn:0,hd:0,sb:0,sp:0,
+                            ex:1,exp:1,ext:"ALIENS!"},
+            {nr:0,mn:0,hd:0,sb:0,sp:"ALIENS?",
+                                ex:1,exp:1,ext:0},
+            {nr:0,mn:0,hd:0,sb:0,sp:0,
+                                ex:1,exp:1,ext:"FROM JUPITER PROBABLY!"},
+            {nr:0,mn:"JUST IN",hd:"JUPITER INVADES. EARTH IN DANGER",sb:0,sp:0,
+                        ex:0,exp:0,ext:0},
+            {nr:0,mn:0,hd:0,sb:"ALIENS FROM JUPITER IN BOUND",sp:"EVERYONE IS URGED TO STAY IN DOORS",
+                        ex:0,exp:0,ext:0},
+            {nr:0,mn:0,hd:0,sb:"TOILET ROLL RATIONING BEGINS FROM MIDNIGHT",sp:"AND NOT RUN SCREAMING FOR THE HILLS",
+                        ex:0,exp:0,ext:0},
+            {nr:0,mn:0,hd:0,sb:0,sp:0, ex:0,exp:0,ext:0},
+            {nr:0,mn:0,hd:0,sb:0,sp:"OUR BEST PILOTS ARE BEING PREPARED", ex:1,exp:0,ext:0,alt:"ARROW KEYS OR WASD TO MOVE"},
+            {nr:0,mn:0,hd:0,sb:0,sp:"TO BATTLE THE THE EVIL JUPITARIAN WARLORD", ex:1,exp:0,ext:0,alt:"K TO FIRE"},
+            {nr:0,mn:0,hd:0,sb:0,sp:0, ex:1,exp:0,ext:0,alt:"AND DONT CRASH INTO ANYTHING"},
+            {nr:0,mn:0,hd:0,sb:0,sp:0, ex:1,exp:0,ext:0,alt:"GOOD LUCK SPACE CADET"},
+            {nr:0,mn:0,hd:0,sb:0,sp:0, ex:1,exp:0,ext:0,alt:"GET GOING ALREADY!"},
+            {nr:0,mn:0,hd:0,sb:0,sp:0, ex:0,exp:0,ext:0},
         ];
 
-        this.doods.push(new Dood(new Vector2(400,500),1));//news guy
-        this.doods.push(new Dood(new Vector2(400,500),1,"EXPERT"));//exp1
+        this.doods.push(new Dood(new Vector2(400,500),4,3));//news guy
+        this.doods.push(new Dood(new Vector2(700,280),3,2,
+        "CHRIS CHAMBERLAIN", "EXPERT"));//exp1
 
         for (let i = 0; i<2; i++) {
-            this.doods.push(new Dood(new Vector2(400,500),0,Util.OneOf(["RESIDENT","NEIGHBOUR","WITNESS"])));
+            this.doods.push(new Dood(new Vector2(400,500),3,4) );
         }
 
-        this.current = {nr:0,mn:0,hd:0,sb:0,sp:0};
+        this.current = {nr:0,mn:0,hd:0,sb:0,sp:0,ex:0,exp:0,ext:0,alt:0};
         this.current.nr = this.scenes[0].nr;
         this.current.mn = this.scenes[0].mn;
         this.current.hd = this.scenes[0].hd;
         this.current.sb = this.scenes[0].sb;
         this.current.sp = this.scenes[0].sp;
+        this.current.ex = this.scenes[0].ex;
+        this.current.exp = this.scenes[0].exp;
+        this.current.ext = this.scenes[0].ext;
+        this.current.alt = this.scenes[0].alt;
     }
 
     Events(dt){
@@ -47,9 +73,9 @@ class Title{
             this.mode = 2;
         }
 
-        if(this.timer < 20){
+        //if(this.timer < 20){
             this.timer += dt;
-        }
+        //}
 
         this.sceneTimer -= dt;
         if(this.sceneTimer <=0)
@@ -66,15 +92,21 @@ class Title{
             this.current.hd = this.scenes[this.scene].hd || this.current.hd;
             this.current.sb = this.scenes[this.scene].sb || this.current.sb;
             this.current.sp = this.scenes[this.scene].sp;
+            this.current.ex = this.scenes[this.scene].ex;
+            this.current.exp = this.scenes[this.scene].exp;
+            this.current.ext = this.scenes[this.scene].ext;
+            this.current.alt = this.scenes[this.scene].alt;
         } 
 
         this.doods[this.current.nr].Update(dt);
+        console.log(this.timer);
     }
 
     Render()
     {
         var w = SFX.bounds.w;
         var h = SFX.bounds.h;
+        var d = 896;
         SFX.Box(0,0,w,h,"#555"); 
 
         if(this.timer>1)
@@ -92,15 +124,41 @@ class Title{
 
             if(this.current.sp)
             {
-                SFX.Text("[ "+this.current.sp+" ]",100,h-280,4, 0, "#ccc");  
+                var txt = "[ "+this.current.sp+" ]";                
+                SFX.Text(txt,(d/2)-((txt.length*(4*4))/2),
+                h-216,4, 0, "#ccc");  
             }
 
             SFX.Box(w-366,16,350,280,"#000");
+            if(this.current.ex){
+                SFX.Box(w-362,20,342,272,"#222");
+
+                if(this.current.exp){
+                    this.doods[this.current.exp].Render();
+                    SFX.Box(w-362,252,342,40,"#000");
+                    SFX.Text(this.doods[this.current.exp].name,w-350,256,2, 0, "#ccc");  
+                    SFX.Text(this.doods[this.current.exp].title,w-350,270,2, 0, "#ccc");  
+                }
+
+                if(this.current.ext)
+                {
+                    var bd = 342;
+                    var txt = "[ "+this.current.ext+" ]";
+                    SFX.Text(txt,w-362 + (bd/2)-((txt.length*(4*3))/2) ,220, 3, 0, "#eee");  
+                }
+
+                if(this.current.alt)
+                {
+                    var bd = 342;
+                    var txt = this.current.alt;
+                    SFX.Text(txt,w-362 + (bd/2)-((txt.length*(4*3))/2) ,100, 3, 0, "#eee");  
+                }
+            }
         }
 
          
-        var a = this.skip>0 ? [1,3] : [3,9];       
-        var b = this.skip>0 ? [2,4] : [8,12]; 
+        var a = this.skip>0 ? [1,3] : [25,31];       
+        var b = this.skip>0 ? [2,4] : [30,34]; 
         for (let i = 0; i < 2; i++) {
             var c = this.col.Clone().Lerp(this.cols[i], 
                 Util.Remap(a[0],a[1], 0,1, this.timer)).RGBA(); 
@@ -113,10 +171,8 @@ class Title{
                 Util.Remap(b[0],b[1], 0,1, this.timer)).RGBA();  
 
             SFX.Text("IN",90-i,136-i,4, 1, c2);
-            SFX.Text("SPACE",60-i,170-i,8, 1, c2);  
-
+            SFX.Text("SPACE",60-i,170-i,8, 1, c2); 
         }
-
 
         if(this.timer>= a[1] ){
             SFX.Text("HIGH: "+ Util.NumericText(this.high,5),360,30,4, 0, this.cols[0]);
@@ -426,14 +482,6 @@ class Game{
 
     Update(dt)
     {
-        //#endregion DEBUG
-        if(Input.IsSingle('KeyI') ) {
-            this.levelDistance = 250;          
-        }
-        if(Input.IsSingle('KeyO') ) {
-            this.level++;          
-        }
-        //#endregion DEBUG
         var b = MAP.ScreenBounds();
 
         if(!this.player.enabled)
@@ -511,12 +559,7 @@ class Game{
                 Util.Remap(this.boss.maxLife,this.boss.dieAt, 100,0, this.boss.lives)
                 , 15, c2);
         }
-        //DEBUG
-        SFX.Text("LF: " + this.Lives,40, 80, 2, 0, "#ff0");
-        SFX.Text("LV: " + this.level,40, 100, 2, 0, "#ff0");
-        SFX.Text("LD: " + this.levelDistance,40, 120, 2, 0, "#ff0");
-        SFX.Text("TR: " + this.transition,40, 140, 2, 0, "#ff0");
-        //DEBUG
+
         if(this.transition){
             var d = 896;
             var txt = TRANS[this.level];

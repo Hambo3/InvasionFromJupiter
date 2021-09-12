@@ -972,7 +972,7 @@ class Trail{
 
 class Dood{
 
-    constructor(pos,t, title){
+    constructor(pos, xsc,ysc, name, title){
         this.pos = pos;
         this.col = ["#000","#eee",
         "#999","#888","#777",//face
@@ -993,8 +993,8 @@ class Dood{
 
         var b = [];
         var lp = [];
-        var xs = 3;
-        var ys = 3;
+        var xs = xsc;
+        var ys = ysc;
         var hd = this.Rate(1);
         var bs = this.Rate(2);
         Util.PersonPos(b, bod, 0,0, xs+bs[0],ys+bs[1]);
@@ -1007,9 +1007,9 @@ class Dood{
         Util.PersonPos(b, tlip, 0*xs,-74*(ys+bs[1]), xs,ys);
         Util.PersonPos(lp, blip, 0*xs,-74*(ys+bs[1]), xs,ys);
 
-        var firsts = ["BILL","MARGARET","TONY","GRAHAM","MARCY","MR","MISS","MIKE"]
-        var lasts = ["CHAMBERLAIN", "BRAITHWAITE", "MASTERS" ];
-        this.name = t ? Util.OneOf(firsts) + " " + Util.OneOf(lasts) : Util.OneOf(firsts);
+        //var firsts = ["BILL","MARGARET","TONY","GRAHAM","MARCY","MR","MISS","MIKE"]
+        //var lasts = ["CHAMBERLAIN", "BRAITHWAITE", "MASTERS" ];
+        this.name = name;//t ? Util.OneOf(firsts) + " " + Util.OneOf(lasts) : Util.OneOf(firsts);
         this.title = title;
         this.body = [b];
         this.altbody = [lp];
@@ -1034,13 +1034,5 @@ class Dood{
         SFX.Sprite(this.pos.x, this.pos.y, this.body[0], this.col, 1);
 
         SFX.Sprite(this.pos.x, this.pos.y+this.lip, this.altbody[0], this.col, 1);
-
-        if(this.name){
-            SFX.Text(this.name, this.pos.x-100, this.pos.y-120,3, 0, "#ccc");
-        }
-        if(this.title)
-        {
-            SFX.Text(this.title, this.pos.x-100, this.pos.y-100,3, 0, "#ccc");
-        }
     }
 }
