@@ -175,7 +175,7 @@ class Player extends GameObject {
             }         
         }
         else{
-            if(Input.Fire2())
+            if(GAME.level == 0 && Input.Fire2())
             {
                 d = {
                     up:0,
@@ -841,7 +841,7 @@ class Man extends Scrollable{
         this.height = 12;
 
         this.deadly = [C.ASSETS.PLAYER];
-
+        this.size = 1.4;
         this.body = [
             HUMANMAN
         ];
