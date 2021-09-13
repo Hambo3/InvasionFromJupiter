@@ -975,41 +975,77 @@ class Dood{
     constructor(pos, xsc,ysc, name, title){
         this.pos = pos;
         this.col = ["#000","#eee",
-        "#999","#888","#777",//face
-        "#aaa","#999","#888",//hi
-        "#666","#555","#444",//hair
-        "#333"];//body
+        "#aaa","#999","#888",//face
+        "#bbb","#aaa","#999",//hi
+        "#777","#666","#555",//hair
+        "#333","#222","#444"];//body
         var bd = 11;
         var fc = Util.RndI(2,5);
         var hr = Util.RndI(8,11);
 
+        var hb = Util.OneIn(2);
+        var hairs = [
+            [hr,[-1,-12,13,-10,16,-1,17,-2,18,-12,11,-19,-9,-19,-18,-11,-17,-3,-16,-1,-13,-11,-4,-13]],
+            [hr,[3,-15,14,-13,16,-9,16,-18,15,-19,2,-19,-9,-19,-15,-19,-16,-18,-16,-10,-13,-14]],
+            [hr,[11,-9,15,-4,16,-4,16,4,14,16,19,19,18,-15,11,-21,-10,-21,-19,-15,-20,19,-14,16,-16,4,-13,-8]],
+            [hr,[1,-14,13,-5,16,-8,16,-3,19,-11,17,-16,10,-21,2,-21,4,-23,3,-26,0,-27,-3,-26,-4,-23,-2,-21,-11,-21,-17,-15,-18,-10,-16,-4,-14,-9]],
+            [hr,[18,-10,16,-10,16,-1,18,-2,19,-9],hr,[-18,-10,-16,-10,-16,-1,-18,-2,-19,-9]],
+            [hr,[16,-3,16,-11,4,-13,-16,-11,-16,-3,-21,-8,-22,-16,-19,-23,-11,-28,8,-29,17,-24,21,-15,19,-7]]
 
-        var bod = [bd,[-32,-64,-8,-64,-8,-71,8,-71,8,-64,32,-64,32,0,-32,0]];
+        ];
+        var bod = [fc,[-8,-64,-8,-71,8,-71,8,-64,22,-64,32,-54,32,0,32,0,-32,0,-32,-54,-21,-64]];
         var hed = [fc,[12,-16,16,-11,16,4,14,16,-14,16,-16,4,-16,-11,-12,-16]];
+        var beard = [hr,[-16,5,16,5,14,16,-14,16]];
+        var dress = [bd,[-12,-64,-12,-52,12,-52,12,-64,16,-64,16,-52,21,-52,21,0,-21,0,-21,-52,-16,-52,-16,-64]];
+        var suit = [bd,[-22,-64,22,-64,32,-54,32,0,-32,0,-32,-54],1,[-8,-64,8,-64,0,-32]];
         var eye = [1,[-3,-2,3,-2,3,2,-3,2],3,[-1,-1,1,-1,1,1,-1,1]];
         var nos = [fc+3,[-1,0,1,0,2,6,-2,6]];
-        var tlip = [8,[-4,-1,4,-1,5,0,-5,0]];
-        var blip = [8,[-5,0,5,0,4,2,-4,2]];
 
+        var tlips =[
+            [hb ? 7 : 8,[-3,-2,-1,-2,0,0,1,-2,3,-2,4,0,-4,0]],
+            [hb ? 7 : 8,[-4,-1,4,-1,5,0,-5,0]]
+        ];
+        var blips = [
+            [hb ? 7 : 8,[-3,0,3,0,1,2,-1,2]],
+            [hb ? 7 : 8,[-5,0,5,0,4,2,-4,2]]
+        ];
+
+        var bonce = hed;
+        if(hb){
+            bonce = bonce.concat(beard);
+        }
+
+        var hs = Util.RndI(0,6);
+         if(hs){
+             bonce = bonce.concat(hairs[hs-1]);
+         }
+        var out = bod;
+        if(Util.OneIn(2)){
+            out = out.concat(dress);
+        }
+        else{
+            out = out.concat(suit);
+        }
+
+        var lip = Util.RndI(0,2);
+        
         var b = [];
         var lp = [];
         var xs = xsc;
         var ys = ysc;
         var hd = this.Rate(1);
         var bs = this.Rate(2);
-        Util.PersonPos(b, bod, 0,0, xs+bs[0],ys+bs[1]);
-        Util.PersonPos(b, hed, 0,-84*(ys+bs[1]), xs+hd[0],ys+hd[1]);
+        Util.PersonPos(b, out, 0,0, xs+bs[0],ys+bs[1]);
+        Util.PersonPos(b, bonce, 0,-84*(ys+bs[1]), xs+hd[0],ys+hd[1]);
 
-        var ey = this.Rate(1);
+        var ey = this.Rate(2);
         Util.PersonPos(b, eye, -6*xs,-86*(ys+bs[1]), xs+ey[0],ys+ey[1]);
         Util.PersonPos(b, eye, 6*xs,-86*(ys+bs[1]), xs+ey[0],ys+ey[1]);
         Util.PersonPos(b, nos, 0*xs,-84*(ys+bs[1]), xs,ys);
-        Util.PersonPos(b, tlip, 0*xs,-74*(ys+bs[1]), xs,ys);
-        Util.PersonPos(lp, blip, 0*xs,-74*(ys+bs[1]), xs,ys);
+        Util.PersonPos(b, tlips[lip], 0*xs,-74*(ys+bs[1]), xs,ys);
+        Util.PersonPos(lp, blips[lip], 0*xs,-74*(ys+bs[1]), xs,ys);
 
-        //var firsts = ["BILL","MARGARET","TONY","GRAHAM","MARCY","MR","MISS","MIKE"]
-        //var lasts = ["CHAMBERLAIN", "BRAITHWAITE", "MASTERS" ];
-        this.name = name;//t ? Util.OneOf(firsts) + " " + Util.OneOf(lasts) : Util.OneOf(firsts);
+        this.name = name;
         this.title = title;
         this.body = [b];
         this.altbody = [lp];

@@ -5,7 +5,7 @@ class Title{
         this.high = hi;
         this.skip = skip;
         this.mode = 1;
-        this.col = new Color("#555",0);
+        this.col = new Color("#444",0);
         this.cols = [new Color("#f00"),new Color("#ff0")];
         this.doods = [];
 
@@ -15,15 +15,15 @@ class Title{
         this.sceneTimer = 6;
         
         this.scenes=[
-            {nr:0,mn:"BREAKING NEWS",hd:"OBJECTS SEEN IN SKY OVER BLETCHLEY",sb:"RESIDENTS COMPLAIN",sp:"REPORTS ARE COMING IN OF STRANGE OBJECTS",
+            {nr:0,mn:"BREAKING NEWS",hd:"OBJECTS SEEN IN SKY OVER BLETCHLEY",sb:"WITNESSES SEE LIGHTS IN SKY AND HEAR STRANGE NOISES",sp:"REPORTS ARE COMING IN OF STRANGE OBJECTS",
                         ex:0,exp:0,ext:0},
             {nr:0,mn:0,hd:0,sb:0,sp:"SEEN IN THE SKY YESTERDAY OVER BLETCHLEY",
                         ex:0,exp:0,ext:0},
-            {nr:0,mn:0,hd:0,sb:0,sp:"WE ASKED AN EXPERT FOR AN OPINION",
+            {nr:0,mn:0,hd:0,sb:"TOILET ROLL SHORTAGE IN BLETCHLEY AFFTER SURGE IN SALES",sp:"WE ASKED AN EXPERT FOR AN OPINION",
                         ex:0,exp:0,ext:0},
             {nr:0,mn:0,hd:0,sb:0,sp:"WHAT CAN YOU TELL US",
                         ex:1,exp:1,ext:0},
-            {nr:0,mn:0,hd:0,sb:0,sp:0,
+            {nr:0,mn:0,hd:0,sb:"RESIDENTS CONCERNED AFTER SEEING SMALL GREEN MEN IN IKEA",sp:0,
                             ex:1,exp:1,ext:"ALIENS!"},
             {nr:0,mn:0,hd:0,sb:0,sp:"ALIENS?",
                                 ex:1,exp:1,ext:0},
@@ -46,7 +46,8 @@ class Title{
 
         this.doods.push(new Dood(new Vector2(400,500),4,3));//news guy
         this.doods.push(new Dood(new Vector2(700,280),3,2,
-        "CHRIS CHAMBERLAIN", "EXPERT"));//exp1
+        Util.OneOf(["CHRIS CHAMBERLAIN","MR CHURCH","GRAHAM", "MARCY", "STEPHANIE"]), 
+        Util.OneOf(["EXPERT","SO CALLED SCIENTIST","DOCTOR","FROM THE GAS BOARD"])));//exp1
 
         for (let i = 0; i<2; i++) {
             this.doods.push(new Dood(new Vector2(400,500),3,4) );
@@ -73,9 +74,9 @@ class Title{
             this.mode = 2;
         }
 
-        //if(this.timer < 20){
+        if(this.timer < 40){
             this.timer += dt;
-        //}
+        }
 
         this.sceneTimer -= dt;
         if(this.sceneTimer <=0)
@@ -99,7 +100,6 @@ class Title{
         } 
 
         this.doods[this.current.nr].Update(dt);
-        console.log(this.timer);
     }
 
     Render()
@@ -107,7 +107,7 @@ class Title{
         var w = SFX.bounds.w;
         var h = SFX.bounds.h;
         var d = 896;
-        SFX.Box(0,0,w,h,"#555"); 
+        SFX.Box(0,0,w,h,"#444"); 
 
         if(this.timer>1)
         {
