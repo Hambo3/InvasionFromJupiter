@@ -63,5 +63,5 @@ class Input extends GamePad{
     static Left(){return this.IsDown('ArrowLeft') || this.IsDown('KeyA') || this.Btn(14) || this.Joy(0,-1)}
     static Right(){return this.IsDown('ArrowRight') || this.IsDown('KeyD') || this.Btn(15) || this.Joy(0,1)}
     static Fire1(){return this.IsSingle('KeyK') || this.Btn(1)}
-    static Fire2(){return this.IsSingle('KeyL') || this.Btn(2)}
+    static Fire2(){return this.IsDown('KeyL') || this.Btn(2)}
 }

@@ -118,6 +118,7 @@ class Player extends GameObject {
         super(pos, C.ASSETS.PLAYER);
         this.col = ["#ccc", "#999", "#888", "#777", "#555", "#19a", "#1a9", "#852"];
         this.speed = 48;
+
         this.damping = 0.8;
         this.auto = null;
         this.body = [
@@ -130,6 +131,8 @@ class Player extends GameObject {
         this.hit = Util.HitBox([-15,-7,15,-2,12,1,-16,2]);
         this.enabled = 1; 
         this.score = 0;
+        this.rescued = 0;
+        this.beam;
     }
     
     Die(){
@@ -148,7 +151,7 @@ class Player extends GameObject {
     }
 
     Update(dt){
-
+        this.beam.enabled = 0;
         var d = {
             up:Input.Up(),
             down:Input.Down(),
@@ -172,13 +175,24 @@ class Player extends GameObject {
             }         
         }
         else{
-            if(Input.Fire1())
+            if(Input.Fire2())
+            {
+                d = {
+                    up:0,
+                    down:0,
+                    left:1,
+                    right:0
+                };
+                this.beam.enabled = 1;
+                AUDIO.Play(9);
+            }
+            else if(Input.Fire1())
             {
                 var bodies = GAME.gameObjects.Get([C.ASSETS.PLRSHOT]);
                 if(bodies.length < 5){
                     var sh = GAME.gameObjects.Is( C.ASSETS.PLRSHOT);
                     if(sh){
-                        sh.Set( new Vector2(this.pos.x+32, this.pos.y) );
+                        sh.Set( new Vector2(this.pos.x+24, this.pos.y) );
                     }
                     else{
                         GAME.gameObjects.Add(
@@ -191,7 +205,8 @@ class Player extends GameObject {
 
             var b = MAP.ScreenBounds();
             this.pos.x = Util.Clamp(this.pos.x, b.Min.x, b.Max.x);
-            this.pos.y = Util.Clamp(this.pos.y, b.Min.y, b.Max.y);   
+            this.pos.y = Util.Clamp(this.pos.y, b.Min.y, 
+                GAME.level == 0 ? b.Max.y-60 : b.Max.y);   
         }
 
         var acc = new Vector2(d.left ? -1 : d.right ? 1 : 0, 
@@ -199,7 +214,7 @@ class Player extends GameObject {
 
         if (acc.x || acc.y)
         {
-            acc.Normalize(dt).Multiply(this.speed);
+            acc.Normalize(dt).Multiply(Input.Fire2() ? 24 : this.speed);
             this.velocity.Add(acc);
         }
         else
@@ -403,7 +418,7 @@ class BossPanel extends GameObject {
 
         this.enabled = 1;
         this.shotTimer = Util.Rnd(3)+5;
-        this.shotMax = GAME.Level<4 ? 3 : 5;
+        this.shotMax = GAME.Level<4 ? 3 : 4;
         this.shotCount = this.shotMax;
         this.func = func;
         this.countDown = 0;   
@@ -658,6 +673,7 @@ class Scrollable extends GameObject{
 
         super(pos, type);
 
+        this.baseY = pos.y;
         this.speed = spd;
         this.deadly = null;
 
@@ -677,6 +693,10 @@ class Scrollable extends GameObject{
         var acc = this.dir.Clone().Normalize(dt).Multiply(this.speed);
         this.velocity.Add(acc);
 
+        if(this.pos.y > this.baseY){
+            this.pos.y = this.baseY;
+        }
+        
         super.Update(dt);
     }
 }
@@ -808,6 +828,55 @@ class Star extends Scrollable{
 
         this.pos = p;
         this.enabled = 1;
+    }
+}
+
+class Man extends Scrollable{
+
+    constructor(pos, type, spd ){
+        super(pos, type, spd );    
+        this.col = MANCOL;
+
+        this.width = 8;
+        this.height = 12;
+
+        this.deadly = [C.ASSETS.PLAYER];
+
+        this.body = [
+            HUMANMAN
+        ];
+        this.hit = Util.HitBox([-4,0,4,0,4,-12,-4,-12]);
+        this.Set(pos,0,spd);
+        this.timer = 0;
+    }
+
+    Update(dt){
+        if(this.timer > 0){
+            this.timer -= dt;
+            this.dir.y = -1;
+        }
+        else{
+            this.dir.y = 1;
+        }
+        super.Update(dt);
+    }
+
+    Abduct(){
+        this.timer = 0.5;        
+    }
+
+    Collider (perp){   
+        perp.rescued++;    
+        this.enabled = 0;
+        AUDIO.Play(10);
+    }
+
+    Set(p,n,sp){
+        this.timer = 0;
+        this.dir.y = 0;
+        this.pos = p;
+        this.enabled = 1;
+        this.speed = sp;
     }
 }
 
@@ -967,6 +1036,35 @@ class Trail{
         this.size = 1;
         this.op = 1;
         this.enabled = 1;
+    }
+}
+
+class Beam extends GameObject{
+
+    constructor(parent){        
+        super(parent.pos, C.ASSETS.BEAM);    
+        this.col = ["rgb(100,100,255,0.2)"];
+
+        this.width = 12;
+        this.height = 32;
+
+        this.deadly = [C.ASSETS.HUMAN];
+
+        this.body = [
+            [0,[-6,0,6,0,9,40,-9,40]]
+        ];
+        this.hit = Util.HitBox([-6,0,6,0,6,40,-6,40]);
+        this.enabled = 0;
+
+        this.parent = parent;
+    }
+
+    Collider (perp){   
+        perp.Abduct();    
+    }
+
+    Update(dt){
+        this.pos = this.parent.pos;
     }
 }
 

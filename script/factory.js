@@ -7,11 +7,13 @@ var C = {
         SHACK:4,  
         HILL:5,  
         BOSS:6,  
-        BOSSPART:7,                                 
-        PLAYER:8,
-        ENEMY:9,
-        PLRSHOT:10,
-        EMYSHOT:11,        
+        BOSSPART:7,  
+        HUMAN:8, 
+        BEAM:9,                              
+        PLAYER:10,
+        ENEMY:11,
+        PLRSHOT:12,
+        EMYSHOT:13,        
      },
      FORMATION:{
          VERTICAL:0,
@@ -22,8 +24,8 @@ var C = {
 }
 
 var TRANS = [
-    {t:200, d:3000, z:0,title:"EARTH",info:["BLETCHLEY","SOME TIME AFTER LUNCH"]},
-    {t:500, d:3000, z:0, title:"SPACE",info:["PROCEDE INTO SPACE","DESTROY THE JUPITER FOE"]},
+    {t:200, d:3000, z:0,title:"EARTH",info:["BLETCHLEY","SAVE THE HUMANS","USE TRACTOR BEAM [L]"]},
+    {t:500, d:3000, z:0, title:"SPACE",info:["PROCEDE INTO SPACE","SAVED"]},
     {t:500, d:99900, z:0.001, title:"WARNING",info:["THE JUPITARIAN SPACE COLONEL APPROACHES"]},
     {t:500, d:3000, z:-0.002, title:"JUPITER",info:["PROCEDE TO JUPITER","[EXTRA LIFE]"]},
     {t:500, d:3000, z:0, title:"SPACE",info:["ONCE AGAIN"]},
@@ -40,9 +42,15 @@ var SOUNDS = [
     [1.03,,362,.01,.03,.23,1,1.74,-1.3,1.5,,,,,,,,.58,.01],//alien shot
     [1.15,,206,.04,.09,.8,2,.72,-4.7,1.9,-447,.07,,,,,,.66],//alarm
     [1.01,,305,.09,.27,.82,1,1.02,3.9,7.7,-6,.07,.09,,,,,.55,.01],//extra
-    [1.98,,685,.02,.35,.66,1,2.22,.7,,,,.02,.3,-3.5,.7,.3,.98,.04,.31]//boss explode
+    [1.98,,685,.02,.35,.66,1,2.22,.7,,,,.02,.3,-3.5,.7,.3,.98,.04,.31],//boss explode
+    [,,1200,,.08,.29,,.3,,,-290,.06,,,,,,.64,.09],
+    [.4,,167,.02,.03,.04,3,.2,,-9.6,,,,,-136,,,,.05],//beam
+    [.5,,775,.03,.01,.21,,2.03,1.7,,,,,,,.1,,.99,.02]//call
 ];
 var LIVES = [0,[-6,-4,-3,-2,2,-2,6,-1,6,1,-1,1,-6,1]];
+
+var HUMANMAN = [0,[-4,0,4,0,4,-12,-4,-12]];
+var MANCOL = ["#F00"];
 
 var BOSS1 = [
     '000000wa00000000',

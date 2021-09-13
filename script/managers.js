@@ -19,7 +19,7 @@ class Title{
                         ex:0,exp:0,ext:0},
             {nr:0,mn:0,hd:0,sb:0,sp:"SEEN IN THE SKY YESTERDAY OVER BLETCHLEY",
                         ex:0,exp:0,ext:0},
-            {nr:0,mn:0,hd:0,sb:"TOILET ROLL SHORTAGE IN BLETCHLEY AFFTER SURGE IN SALES",sp:"WE ASKED AN EXPERT FOR AN OPINION",
+            {nr:0,mn:0,hd:0,sb:"TOILET ROLL SHORTAGE IN BLETCHLEY AFTER SURGE IN SALES",sp:"WE ASKED AN EXPERT FOR AN OPINION",
                         ex:0,exp:0,ext:0},
             {nr:0,mn:0,hd:0,sb:0,sp:"WHAT CAN YOU TELL US",
                         ex:1,exp:1,ext:0},
@@ -38,6 +38,7 @@ class Title{
             {nr:0,mn:0,hd:0,sb:0,sp:0, ex:0,exp:0,ext:0},
             {nr:0,mn:0,hd:0,sb:0,sp:"OUR BEST PILOTS ARE BEING PREPARED", ex:1,exp:0,ext:0,alt:"ARROW KEYS OR WASD TO MOVE"},
             {nr:0,mn:0,hd:0,sb:0,sp:"TO BATTLE THE THE EVIL JUPITARIAN WARLORD", ex:1,exp:0,ext:0,alt:"K TO FIRE"},
+            {nr:0,mn:0,hd:0,sb:0,sp:0, ex:1,exp:0,ext:0,alt:"L TO USE TRACTOR BEAM"},
             {nr:0,mn:0,hd:0,sb:0,sp:0, ex:1,exp:0,ext:0,alt:"AND DONT CRASH INTO ANYTHING"},
             {nr:0,mn:0,hd:0,sb:0,sp:0, ex:1,exp:0,ext:0,alt:"GOOD LUCK SPACE CADET"},
             {nr:0,mn:0,hd:0,sb:0,sp:0, ex:1,exp:0,ext:0,alt:"GET GOING ALREADY!"},
@@ -184,7 +185,8 @@ class Title{
 class Game{
 
     constructor(hi)
-    {
+    {        
+        this.levelSpeed = 24;
         this.mode = 3;
         this.high = hi;
         this.scrollRate = 0.03;
@@ -198,6 +200,10 @@ class Game{
         this.player.auto = new Vector2(16*32,24*32);
         this.gameObjects.Add(this.player);
 
+        var beam = new Beam(this.player);
+        this.gameObjects.Add( beam );
+        this.player.beam = beam;
+        
         MAP.scale = 1;
         this.offset = MAP.ScrollTo(new Vector2(16*32,24*32));
 
@@ -207,7 +213,7 @@ class Game{
 
         this.Lives = 5;
         this.zoomTransition = 0;
-        this.levelSpeed = 24;
+
         this.timer1 = 0;
         this.timer2 = 0;
         this.timer3 = 0;
@@ -355,8 +361,15 @@ class Game{
         {
 
             if(this.transition==0){
-                this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 2, 
-                                new Vector2(b.Max.x + 100, b.Max.y-16), this.levelSpeed);
+                if(Util.OneIn(3)){
+                    this.timer1 = this.ObjectGen(C.ASSETS.HUMAN, Man, this.timer1-dt, 1, 2, 
+                        new Vector2(b.Max.x + 100, b.Max.y-28), this.levelSpeed*1.5);
+                }
+                else{
+                    this.timer1 = this.ObjectGen(C.ASSETS.SHACK, Block, this.timer1-dt, 1, 2, 
+                        new Vector2(b.Max.x + 100, b.Max.y-16), this.levelSpeed);
+                }
+
                 this.timer2 = this.ObjectGen(C.ASSETS.BGSHACK, Block, this.timer2-dt, 0.4, 1, 
                                 new Vector2(b.Max.x + 100, b.Max.y-32), this.levelSpeed*0.7);
 
@@ -392,6 +405,11 @@ class Game{
                 if(this.transition==1){
                     this.gameObjects.Remove([C.ASSETS.ENEMY]);
                     this.particles.Clear();
+                    
+                    if(this.level == 1){
+                        this.player.score += this.player.rescued * 100;
+                        AUDIO.Play(8);
+                    }
                 }
             }
         }
@@ -568,6 +586,14 @@ class Game{
                 var tx = txt.info[i].replace("###", Util.NumericText(this.player.score,5));
                 SFX.Text(tx, (d/2)-((tx.length*(4*2))/2),
                 240 + (i*16),2,0,"#ff0");
+            }
+            if(this.level == 1){
+                var i = 0;
+                for (i = 0; i < this.player.rescued; i++) {
+                    SFX.Sprite( ((d/2)-60)+(i*16), 290, HUMANMAN, MANCOL, 1.4);
+                }
+                SFX.Text("X 100", ((d/2)-60)+(i*16),
+                    280,2,0,"#f00");
             }
         }
         //
