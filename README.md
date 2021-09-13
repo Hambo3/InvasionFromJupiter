@@ -4,17 +4,19 @@ Unusual sighting in the sky above planet earth! It must be invaders from Jupiite
 Assemble our top pilots to defend planet Earth and launch a counter attack on Jupiter!
 
 ## Gameplay
-WASD/ARROW Keys to move
+WASD/ARROW Keys to move  
 K to fire
 L to use Tractor beam
 
 A side scrolling shooter with 6 levels
-1 Earth
-2 Space
-3 First Boss
-4 Jupiter
-5 Space again
-6 Final Boss
+1 Earth  
+2 Space  
+3 First Boss  
+4 Jupiter  
+5 Space again  
+6 Final Boss  
+
+The difficulty level is set quite high I think. Nor sure, time will tell.  
 
 # Development
 I had always wanted to do a side scrolling shooter with enormous end of level bosses and so I used this competition as the ideal opportunity, especially as the theme was Space.  
